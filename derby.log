@@ -1,0 +1,42 @@
+----------------------------------------------------------------
+Tue Mar 10 14:19:51 EET 2026D001 : [0] The Apache Software Foundation - Apache Derby - 10.17.1.0 - (1913217), [1] a816c00e-019c-d7b0-5e87-0000020a6c90, [2] /home/mahmoud/projects/mySales/salesDB, [3] jdk.internal.loader.ClassLoaders$AppClassLoader@b1bc7ed, [4] file:/home/mahmoud/.gradle/caches/modules-2/files-2.1/org.apache.derby/derby/10.17.1.0/e90e61e8ee731614a9bafd3d81155e09fff5e80c/derby-10.17.1.0.jar
+java.vendor=Ubuntu
+java.runtime.version=21.0.10+7-Ubuntu-124.04
+user.dir=/home/mahmoud/projects/mySales
+os.name=Linux
+os.arch=amd64
+os.version=6.17.0-14-generic
+derby.system.home=null
+C005 : [0] 
+----------------------------------------------------------------
+Tue Mar 10 14:20:27 EET 2026D002 : [0] a816c00e-019c-d7b0-5e87-0000020a6c90, [1] /home/mahmoud/projects/mySales/salesDB, [2] jdk.internal.loader.ClassLoaders$AppClassLoader@b1bc7ed
+Tue Mar 10 14:20:27 EET 2026 Thread[#45,Thread-15,5,main] Cleanup action starting
+ERROR XBM0I: XBM0I.D : [0] salesDB
+	at org.apache.derby.shared.common.error.StandardException.newException(StandardException.java:299)
+	at org.apache.derby.shared.common.error.StandardException.newException(StandardException.java:294)
+	at org.apache.derby.iapi.services.monitor.Monitor.removePersistentService(Monitor.java:663)
+	at org.apache.derby.impl.jdbc.EmbedConnection.removePersistentService(EmbedConnection.java:4014)
+	at org.apache.derby.impl.jdbc.EmbedConnection.<init>(EmbedConnection.java:620)
+	at org.apache.derby.iapi.jdbc.InternalDriver.getNewEmbedConnection(InternalDriver.java:629)
+	at org.apache.derby.iapi.jdbc.InternalDriver$LoginCallable.call(InternalDriver.java:400)
+	at org.apache.derby.iapi.jdbc.InternalDriver$LoginCallable.call(InternalDriver.java:376)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+Cleanup action completed
+Tue Mar 10 14:20:27 EET 2026 Thread[#45,Thread-15,5,main] Cleanup action starting
+ERROR XBM0I: XBM0I.D : [0] salesDB
+	at org.apache.derby.shared.common.error.StandardException.newException(StandardException.java:299)
+	at org.apache.derby.shared.common.error.StandardException.newException(StandardException.java:294)
+	at org.apache.derby.iapi.services.monitor.Monitor.removePersistentService(Monitor.java:663)
+	at org.apache.derby.impl.jdbc.EmbedConnection.removePersistentService(EmbedConnection.java:4014)
+	at org.apache.derby.impl.jdbc.EmbedConnection.<init>(EmbedConnection.java:620)
+	at org.apache.derby.iapi.jdbc.InternalDriver.getNewEmbedConnection(InternalDriver.java:629)
+	at org.apache.derby.iapi.jdbc.InternalDriver$LoginCallable.call(InternalDriver.java:400)
+	at org.apache.derby.iapi.jdbc.InternalDriver$LoginCallable.call(InternalDriver.java:376)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+Cleanup action completed

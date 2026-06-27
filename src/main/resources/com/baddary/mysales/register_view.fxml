@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.String?>
+<?import javafx.collections.FXCollections?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Text?>
+
+<VBox alignment="CENTER" minHeight="400.0" minWidth="450.0" spacing="10" style="-fx-background-color: #f4f4f4; -fx-padding: 20;" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.baddary.mysales.controller.RegisterController">
+
+   <Text style="-fx-font-size: 24px; -fx-font-weight: bold;" text="User Registration" />
+
+   <GridPane alignment="CENTER" hgap="10" vgap="10">
+      <padding><Insets bottom="10" left="10" right="10" top="10" /></padding>
+
+      <!-- Username Field -->
+      <Label style="-fx-font-weight: bold;" text="Username:" GridPane.columnIndex="0" GridPane.rowIndex="0" />
+      <TextField fx:id="usernameField" promptText="Enter username" GridPane.columnIndex="1" GridPane.rowIndex="0" HBox.hgrow="ALWAYS" />
+
+      <!-- Password Field -->
+      <Label style="-fx-font-weight: bold;" text="Password:" GridPane.columnIndex="0" GridPane.rowIndex="1" />
+      <PasswordField fx:id="passwordField" promptText="Enter password" GridPane.columnIndex="1" GridPane.rowIndex="1" HBox.hgrow="ALWAYS" />
+
+      <!-- Confirm Password Field -->
+      <Label style="-fx-font-weight: bold;" text="Confirm Password:" GridPane.columnIndex="0" GridPane.rowIndex="2" />
+      <PasswordField fx:id="confirmPasswordField" promptText="Re-enter password" GridPane.columnIndex="1" GridPane.rowIndex="2" HBox.hgrow="ALWAYS" />
+
+      <!-- Role Selection -->
+      <Label style="-fx-font-weight: bold;" text="Role:" GridPane.columnIndex="0" GridPane.rowIndex="3" />
+      <ComboBox fx:id="roleComboBox" GridPane.columnIndex="1" GridPane.rowIndex="3" HBox.hgrow="ALWAYS">
+         <items>
+             <FXCollections fx:factory="observableArrayList">
+                 <String fx:value="ADMIN" />
+                 <String fx:value="USER" />
+             </FXCollections>
+         </items>
+         <value>
+            <String fx:value="USER" />
+         </value>
+      </ComboBox>
+   </GridPane>
+
+   <!-- Error Message Label -->
+   <Label fx:id="errorLabel" style="-fx-text-fill: red; -fx-font-weight: bold;" />
+
+   <!-- Register Button -->
+   <Button defaultButton="true" onAction="#handleRegister" style="-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-weight: bold;" text="Register" />
+</VBox>
