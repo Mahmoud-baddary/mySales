@@ -12,7 +12,7 @@ public class OrderDTO {
     private Long id;
     private LocalDate date;
     private LocalTime time;
-    private PaymentType paymentType;
+    private double paidMoney;
     private OrderType orderType;
     private double discount;
     private Long customerId;
@@ -53,12 +53,12 @@ public class OrderDTO {
         this.orderType = orderType;
     }
 
-    public PaymentType getPaymentType() {
-        return paymentType;
+    public double getPaidMoney() {
+        return paidMoney;
     }
 
-    public void setPaymentType(PaymentType paymentType) {
-        this.paymentType = paymentType;
+    public void setPaidMoney(double paidMoney) {
+        this.paidMoney = paidMoney;
     }
 
     public double getDiscount() {

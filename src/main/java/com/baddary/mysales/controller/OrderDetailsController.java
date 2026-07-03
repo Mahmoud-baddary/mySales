@@ -40,7 +40,7 @@ public class OrderDetailsController {
     private Label lblOrderType;
 
     @FXML
-    private Label lblPaymentType;
+    private Label lblPaidMoney;
 
     @FXML
     private Label lblDiscount;
@@ -109,7 +109,7 @@ public class OrderDetailsController {
                 lblDate.setText(dto.getDate().toString());
                 lblDiscount.setText(String.valueOf(dto.getDiscount()));
                 lblOrderId.setText(String.valueOf(dto.getId()));
-                lblPaymentType.setText(dto.getPaymentType().name());
+                lblPaidMoney.setText(String.valueOf(dto.getPaidMoney()));
                 lblOrderType.setText(dto.getOrderType().name());
                 lblTotalPrice.setText(String.valueOf(dto.getTotalPrice()));
                 lblUser.setText(dto.getUserName());

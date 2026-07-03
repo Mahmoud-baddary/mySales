@@ -8,9 +8,14 @@ public class OrderMapper {
     }
 
     public static OrderSearchRow toRow(OrderDTO dto) {
-        OrderSearchRow row = new OrderSearchRow(dto.getId(),
-                dto.getDate(), dto.getCustomerName(), dto.getOrderType(),
-                dto.getPaymentType(), dto.getTotalPrice(), dto.getUserName());
+        OrderSearchRow row = new OrderSearchRow();
+        row.setCustomerName(dto.getCustomerName());
+        row.setDate(dto.getDate());
+        row.setFinalPrice(dto.getTotalPrice());
+        row.setId(dto.getId());
+        row.setOrderType(dto.getOrderType());
+        row.setPaidMoney(dto.getPaidMoney());
+        row.setUserName(dto.getUserName());
         return row;
     }
 

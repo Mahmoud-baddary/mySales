@@ -47,17 +47,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import javafx.scene.control.ToggleGroup;
 
 public class SalesOrderController {
     @FXML
     private TableColumn<OrderProductSaleRow, Number> colStock;
     @FXML
     private TableColumn<OrderProductSaleRow, String> colNotes;
-    @FXML
-    private RadioButton radioBtnDeffered;
-    @FXML
-    private RadioButton radioBtnInstant;
     @FXML
     private TableColumn<OrderProductSaleRow, Number> colDiscount;
     @FXML
@@ -110,8 +105,6 @@ public class SalesOrderController {
     private final ProductApiService productApiService = new ProductApiService();
     private final StockApiService stockApiService = new StockApiService();
     private Stage stage;
-    @FXML
-    private ToggleGroup paymentGroup;
 
     public void initialize(Stage stage) {
         this.stage = stage;
@@ -251,27 +244,48 @@ public class SalesOrderController {
             lblStatus.setText("No products were added");
             return;
         }
+
         OrderDTO orderDTO = new OrderDTO();
-        PaymentType paymentType = radioBtnInstant.isSelected() ? PaymentType.INSTANT : PaymentType.DEFERRED;
-        LocalDate date = LocalDate.now();
-        LocalTime time = LocalTime.now();
-        double discount = Double.parseDouble(tfDiscount.getText());
+        TextInputDialog dialog = new TextInputDialog("0.00");
+        dialog.setTitle("Payment");
+        dialog.setHeaderText("Enter the amount paid by the customer:");
+        dialog.setContentText("Paid Money:");
 
-        orderDTO.setCustomerId(customerId);
-        orderDTO.setUserId(TokenStore.getCurrentUserId());
-        orderDTO.setTime(time);
-        orderDTO.setDiscount(discount);
-        orderDTO.setDate(date);
-        orderDTO.setPaymentType(paymentType);
-        orderDTO.setOrderType(OrderType.SALE);
-        List<OrderProductDTO> orderProductDTOS = saleRows.stream().map(OrderProductMapper::toDTO).toList();
-        orderDTO.getOrderProductDTOSet().addAll(orderProductDTOS);
+        // Show the dialog and wait for user response
+        Optional<String> result = dialog.showAndWait();
 
-        Helper.startTask(orderApiService.addOrderAsync(orderDTO),
-                e -> {
-                    saleRows.clear();
-                    lblFinalPrice.setText("saved");
-                }, null, this.stage);
+        result.ifPresent(input -> {
+            try {
+                double paidMoney = Double.parseDouble(input.trim());
+                if (paidMoney < 0) {
+                    Helper.createAlertError("Error", "Amount cannot be negative.").show();
+                    return;
+                }
+                // Set the paid money in your DTO
+                orderDTO.setPaidMoney(paidMoney);
+                // Proceed to save the order...
+                LocalDate date = LocalDate.now();
+                LocalTime time = LocalTime.now();
+                double discount = Double.parseDouble(tfDiscount.getText());
+
+                orderDTO.setCustomerId(customerId);
+                orderDTO.setUserId(TokenStore.getCurrentUserId());
+                orderDTO.setTime(time);
+                orderDTO.setDiscount(discount);
+                orderDTO.setDate(date);
+                orderDTO.setOrderType(OrderType.SALE);
+                List<OrderProductDTO> orderProductDTOS = saleRows.stream().map(OrderProductMapper::toDTO).toList();
+                orderDTO.getOrderProductDTOSet().addAll(orderProductDTOS);
+
+                Helper.startTask(orderApiService.addOrderAsync(orderDTO),
+                        e -> {
+                            saleRows.clear();
+                            lblFinalPrice.setText("saved");
+                        }, null, this.stage);
+            } catch (NumberFormatException e) {
+                Helper.createAlertError("Error", "Please enter a valid number.").show();
+            }
+        });
 
     }
 

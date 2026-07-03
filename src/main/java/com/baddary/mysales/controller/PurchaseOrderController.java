@@ -44,15 +44,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import javafx.scene.control.ToggleGroup;
 
 public class PurchaseOrderController {
     @FXML
     private TableColumn<OrderProductPurchaseRow, String> colNote;
-    @FXML
-    private RadioButton radioBtnDeffered;
-    @FXML
-    private RadioButton radioBtnInstant;
+
     @FXML
     private TableColumn<OrderProductPurchaseRow, Number> colDiscount;
     @FXML
@@ -101,7 +97,6 @@ public class PurchaseOrderController {
     private final ProductApiService productApiService = new ProductApiService();
     private Stage stage;
     @FXML
-    private ToggleGroup paymentGroup;
 
     public void initialize(Stage stage) {
         this.stage = stage;
@@ -110,8 +105,6 @@ public class PurchaseOrderController {
         setupFocusSeries();
         tblProducts.setItems(purchaseRows);
 
-        // most purchase orders are differed so
-        radioBtnDeffered.setSelected(true);
 
         // formatter to prevent anything other than numbers
         TextFormatter<String> phoneNumFormatter = new TextFormatter<>(change -> {
@@ -253,25 +246,45 @@ public class PurchaseOrderController {
             lblStatus.setText("No products were added");
             return;
         }
-        PaymentType paymentType = radioBtnInstant.isSelected() ? PaymentType.INSTANT : PaymentType.DEFERRED;
-        LocalDate date = LocalDate.now();
-        LocalTime time = LocalTime.now();
-        double discount = Double.parseDouble(tfDiscount.getText());
-
         OrderDTO orderDTO = new OrderDTO();
-        orderDTO.setCustomerId(customerId);
-        orderDTO.setUserId(TokenStore.getCurrentUserId());
-        orderDTO.setDate(date);
-        orderDTO.setTime(time);
-        orderDTO.setDiscount(discount);
-        orderDTO.setPaymentType(paymentType);
-        orderDTO.setOrderType(OrderType.BUY);
-        List<OrderProductDTO> orderProductDTOS = purchaseRows.stream().map(OrderProductMapper::toDTO).toList();
-        orderDTO.getOrderProductDTOSet().addAll(orderProductDTOS);
-        Helper.startTask(orderApiService.addOrderAsync(orderDTO), e -> {
-            purchaseRows.clear();
-            lblStatus.setText("saved");
-        }, null, this.stage);
+
+        TextInputDialog dialog = new TextInputDialog("0.00");
+        dialog.setTitle("Payment");
+        dialog.setHeaderText("Enter the amount paid by the store:");
+        dialog.setContentText("Paid Money:");
+
+        // Show the dialog and wait for user response
+        Optional<String> result = dialog.showAndWait();
+        result.ifPresent(input -> {
+            try {
+                double paidMoney = Double.parseDouble(input.trim());
+                if (paidMoney < 0) {
+                    Helper.createAlertError("Error", "Amount cannot be negative.").show();
+                    return;
+                }
+                // Set the paid money in your DTO
+                orderDTO.setPaidMoney(paidMoney);
+                // Proceed to save the order...
+                LocalDate date = LocalDate.now();
+                LocalTime time = LocalTime.now();
+                double discount = Double.parseDouble(tfDiscount.getText());
+
+                orderDTO.setCustomerId(customerId);
+                orderDTO.setUserId(TokenStore.getCurrentUserId());
+                orderDTO.setDate(date);
+                orderDTO.setTime(time);
+                orderDTO.setDiscount(discount);
+                orderDTO.setOrderType(OrderType.BUY);
+                List<OrderProductDTO> orderProductDTOS = purchaseRows.stream().map(OrderProductMapper::toDTO).toList();
+                orderDTO.getOrderProductDTOSet().addAll(orderProductDTOS);
+                Helper.startTask(orderApiService.addOrderAsync(orderDTO), e -> {
+                    purchaseRows.clear();
+                    lblStatus.setText("saved");
+                }, null, this.stage);
+            } catch (NumberFormatException e) {
+                Helper.createAlertError("Error", "Please enter a valid number.").show();
+            }
+        });
 
     }
 
@@ -435,7 +448,7 @@ public class PurchaseOrderController {
 
     }
 
-   @FXML
+    @FXML
     private void handleMenuSearchOrders(ActionEvent event) throws IOException {
         FXMLLoader loader = new FXMLLoader(MainApplication.class.getResource("order_search_view.fxml"));
         Parent root = loader.load();

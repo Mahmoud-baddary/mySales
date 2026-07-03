@@ -89,19 +89,6 @@
                 
                 <HBox alignment="CENTER_LEFT">
                     <children>
-                        <RadioButton fx:id="radioBtnInstant" mnemonicParsing="false" selected="true" text="INSTANT">
-                            <toggleGroup>
-                                <ToggleGroup fx:id="paymentGroup"/>
-                            </toggleGroup>
-                            <HBox.margin>
-                                <Insets right="10.0" />
-                            </HBox.margin>
-                        </RadioButton>
-                        <RadioButton fx:id="radioBtnDeffered" mnemonicParsing="false" text="Deffered" toggleGroup="$paymentGroup">
-                            <HBox.margin>
-                                <Insets left="10.0" right="30.0" />
-                            </HBox.margin>
-                        </RadioButton>
                         <Label style="-fx-font-weight: bold;" text="Total Price:">
                             <HBox.margin>
                                 <Insets left="20.0" />

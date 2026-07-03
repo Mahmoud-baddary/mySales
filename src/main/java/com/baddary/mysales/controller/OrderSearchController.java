@@ -67,7 +67,7 @@ public class OrderSearchController {
     @FXML
     private TableColumn<OrderSearchRow, OrderType> colOrderType;
     @FXML
-    private TableColumn<OrderSearchRow, PaymentType> colPaymentType;
+    private TableColumn<OrderSearchRow, Number> colPaidMoney;
     @FXML
     private ComboBox<String> cbOrderType;
     @FXML
@@ -88,7 +88,7 @@ public class OrderSearchController {
         colOrderDate.setCellValueFactory(cellData -> cellData.getValue().dateProperty());
         colCustomerName.setCellValueFactory(cellData -> cellData.getValue().customerNameProperty());
         colOrderType.setCellValueFactory(cellData -> cellData.getValue().orderTypeProperty());
-        colPaymentType.setCellValueFactory(cellData -> cellData.getValue().paymentTypeProperty());
+        colPaidMoney.setCellValueFactory(cellData -> cellData.getValue().paidMoneyProperty());
         colFinalPrice.setCellValueFactory(cellData -> cellData.getValue().finalPriceProperty());
         colUser.setCellValueFactory(cellData -> cellData.getValue().userNameProperty());
         tblOrders.setItems(orderRows);

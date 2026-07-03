@@ -45,8 +45,8 @@
                 <Label text="Order Type:" GridPane.columnIndex="0" GridPane.rowIndex="5" style="-fx-font-weight: bold;" />
                 <Label fx:id="lblOrderType" GridPane.columnIndex="1" GridPane.rowIndex="5" />
 
-                <Label text="Payment Type:" GridPane.columnIndex="0" GridPane.rowIndex="6" style="-fx-font-weight: bold;" />
-                <Label fx:id="lblPaymentType" GridPane.columnIndex="1" GridPane.rowIndex="6" />
+                <Label text="Paid Money:" GridPane.columnIndex="0" GridPane.rowIndex="6" style="-fx-font-weight: bold;" />
+                <Label fx:id="lblPaidMoney" GridPane.columnIndex="1" GridPane.rowIndex="6" />
 
                 <Label text="Discount:" GridPane.columnIndex="0" GridPane.rowIndex="7" style="-fx-font-weight: bold;" />
                 <Label fx:id="lblDiscount" GridPane.columnIndex="1" GridPane.rowIndex="7" />

@@ -1,6 +1,7 @@
 package com.baddary.mysales.dto;
 
 
+import java.math.BigDecimal;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -8,6 +9,8 @@ public class CustomerDTO {
     private Long id;
     private String name, email, address;
     private final Set<PhoneDTO> phoneDTOSet = new HashSet<>();
+    private double balance;
+    
 
     public Long getId() {
         return id;
@@ -43,5 +46,13 @@ public class CustomerDTO {
 
     public Set<PhoneDTO> getPhoneDTOSet() {
         return phoneDTOSet;
+    }
+
+    public double getBalance() {
+        return balance;
+    }
+
+    public void setBalance(double balance) {
+        this.balance = balance ;
     }
 }
