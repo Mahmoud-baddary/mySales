@@ -7,7 +7,6 @@ import com.baddary.mysales.dto.OrderProductDTO;
 import com.baddary.mysales.dto.ProductDTO;
 import com.baddary.mysales.dto.StockDTO;
 import com.baddary.mysales.enums.OrderType;
-import com.baddary.mysales.enums.PaymentType;
 import com.baddary.mysales.helper.Helper;
 import com.baddary.mysales.mapper.OrderProductMapper;
 import com.baddary.mysales.row.OrderProductSaleRow;

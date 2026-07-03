@@ -6,7 +6,6 @@ import java.util.HashSet;
 import java.util.Set;
 
 import com.baddary.mysales.enums.OrderType;
-import com.baddary.mysales.enums.PaymentType;
 
 public class OrderDTO {
     private Long id;
