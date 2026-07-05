@@ -111,7 +111,7 @@ public class OrderDetailsController {
                 lblOrderId.setText(String.valueOf(dto.getId()));
                 lblPaidMoney.setText(String.valueOf(dto.getPaidMoney()));
                 lblOrderType.setText(dto.getOrderType().name());
-                lblTotalPrice.setText(String.valueOf(dto.getTotalPrice()));
+                lblTotalPrice.setText(String.valueOf(dto.calculateTotalPrice()));
                 lblUser.setText(dto.getUserName());
                 lblTime.setText(dto.getTime().toString());
                 orderItemsList.clear();

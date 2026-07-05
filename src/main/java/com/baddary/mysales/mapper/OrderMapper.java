@@ -11,7 +11,7 @@ public class OrderMapper {
         OrderSearchRow row = new OrderSearchRow();
         row.setCustomerName(dto.getCustomerName());
         row.setDate(dto.getDate());
-        row.setFinalPrice(dto.getTotalPrice());
+        row.setFinalPrice(dto.calculateTotalPrice());
         row.setId(dto.getId());
         row.setOrderType(dto.getOrderType());
         row.setPaidMoney(dto.getPaidMoney());

@@ -88,7 +88,7 @@ public class OrderDTO {
         return orderProductDTOSet;
     }
 
-    public double getTotalPrice() {
+    public double calculateTotalPrice() {
         return orderProductDTOSet.stream()
                 .mapToDouble(item -> (item.getQuantity() * item.getPrice()) * (1 - item.getDiscount() / 100.0))
                 .sum() * (1 - discount / 100.0);
