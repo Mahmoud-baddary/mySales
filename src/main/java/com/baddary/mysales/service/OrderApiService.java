@@ -11,7 +11,6 @@ import java.util.Optional;
 
 import com.baddary.mysales.dto.OrderDTO;
 import com.baddary.mysales.enums.OrderType;
-import com.baddary.mysales.enums.PaymentType;
 import com.baddary.mysales.exception.UnauthorizedException;
 import com.baddary.mysales.util.TokenStore;
 import com.fasterxml.jackson.core.type.TypeReference;
