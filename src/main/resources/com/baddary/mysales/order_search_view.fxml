@@ -45,10 +45,6 @@
         <ComboBox fx:id="cbOrderType" prefWidth="120">
                     
                 </ComboBox>
-        <Label style="-fx-font-weight: bold;" text="Payment Type:" minWidth="70"/>
-        <ComboBox fx:id="cbPaymentType" prefWidth="120">
-                    
-                </ComboBox>
       </HBox>
       <!-- Buttons: Search, Reset -->
       <HBox spacing="15.0" alignment="CENTER_RIGHT">
@@ -65,39 +61,18 @@
       <TableView fx:id="tblOrders" VBox.vgrow="ALWAYS">
         <columns>
           <TableColumn fx:id="colOrderId" text="Order ID" prefWidth="80">
-            <cellValueFactory>
-              <PropertyValueFactory property="id"/>
-            </cellValueFactory>
           </TableColumn>
           <TableColumn fx:id="colOrderDate" text="Date" prefWidth="100">
-            <cellValueFactory>
-              <PropertyValueFactory property="date"/>
-            </cellValueFactory>
           </TableColumn>
           <TableColumn fx:id="colCustomerName" text="Customer" prefWidth="150">
-            <cellValueFactory>
-              <PropertyValueFactory property="customerName"/>
-            </cellValueFactory>
           </TableColumn>
           <TableColumn fx:id="colOrderType" text="Order Type" prefWidth="90">
-            <cellValueFactory>
-              <PropertyValueFactory property="orderType"/>
-            </cellValueFactory>
           </TableColumn>
-          <TableColumn fx:id="colPaidMoney" text="Payment Type" prefWidth="100">
-            <cellValueFactory>
-              <PropertyValueFactory property="paymentType"/>
-            </cellValueFactory>
+          <TableColumn fx:id="colPaidMoney" text="paid money" prefWidth="100">
           </TableColumn>
           <TableColumn fx:id="colFinalPrice" text="Final price" prefWidth="100">
-            <cellValueFactory>
-              <PropertyValueFactory property="totalAmount"/>
-            </cellValueFactory>
           </TableColumn>
           <TableColumn fx:id="colUser" text="User" prefWidth="120">
-            <cellValueFactory>
-              <PropertyValueFactory property="userName"/>
-            </cellValueFactory>
           </TableColumn>
         </columns>
         <columnResizePolicy>

@@ -70,8 +70,7 @@ public class OrderSearchController {
     private TableColumn<OrderSearchRow, Number> colPaidMoney;
     @FXML
     private ComboBox<String> cbOrderType;
-    @FXML
-    private ComboBox<String> cbPaymentType;
+
 
     private final OrderApiService orderApiService = new OrderApiService();
     private final ObservableList<OrderSearchRow> orderRows = FXCollections.observableArrayList();
@@ -81,9 +80,6 @@ public class OrderSearchController {
         this.stage = stage;
         cbOrderType.getItems().addAll("All", "SALE", "BUY");
         cbOrderType.getSelectionModel().select("All");
-
-        cbPaymentType.getItems().addAll("All", "INSTANT", "DEFERRED");
-        cbPaymentType.getSelectionModel().select("All");
         colOrderId.setCellValueFactory(cellData -> cellData.getValue().idProperty());
         colOrderDate.setCellValueFactory(cellData -> cellData.getValue().dateProperty());
         colCustomerName.setCellValueFactory(cellData -> cellData.getValue().customerNameProperty());
@@ -112,7 +108,6 @@ public class OrderSearchController {
 
         // Set default combo box selections
         cbOrderType.getSelectionModel().select("All");
-        cbPaymentType.getSelectionModel().select("All");
     }
 
     
@@ -145,15 +140,9 @@ public class OrderSearchController {
             orderType = OrderType.valueOf(orderTypeStr);
         }
 
-        String paymentTypeStr = cbPaymentType.getValue();
-        PaymentType paymentType = null;
-        if (paymentTypeStr != null && !"All".equals(paymentTypeStr)) {
-            paymentType = PaymentType.valueOf(paymentTypeStr);
-        }
 
         Task<List<OrderDTO>> searchTask = orderApiService.searchOrdersAsync(
-                customerName, productName, userName, fromDate, toDate, orderType,
-                paymentType);
+                customerName, productName, userName, fromDate, toDate, orderType);
         Helper.startTask(searchTask, e -> {
             orderRows.clear();
             List<OrderDTO> dtos = searchTask.getValue();
@@ -171,7 +160,6 @@ public class OrderSearchController {
         dpFromDate.setValue(null);
         dpToDate.setValue(null);
         cbOrderType.getSelectionModel().select("All");
-        cbPaymentType.getSelectionModel().select("All");
     }
 
     @FXML

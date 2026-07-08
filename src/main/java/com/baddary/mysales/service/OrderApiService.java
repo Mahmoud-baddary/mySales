@@ -65,8 +65,7 @@ public class OrderApiService {
 
     public Task<List<OrderDTO>> searchOrdersAsync(String customerName, String productName,
             String userName, LocalDate fromDate,
-            LocalDate toDate, OrderType orderType,
-            PaymentType paymentType) {
+            LocalDate toDate, OrderType orderType) {
         return new Task<>() {
             @Override
             protected List<OrderDTO> call() throws Exception {
@@ -106,12 +105,6 @@ public class OrderApiService {
                     if (!first)
                         urlBuilder.append("&");
                     urlBuilder.append("orderType=").append(orderType.name());
-                    first = false;
-                }
-                if (paymentType != null) {
-                    if (!first)
-                        urlBuilder.append("&");
-                    urlBuilder.append("paymentType=").append(paymentType.name());
                 }
 
                 HttpRequest request = addAuthHeader(HttpRequest.newBuilder()
