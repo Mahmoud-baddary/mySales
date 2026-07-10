@@ -245,7 +245,7 @@ public class SalesOrderController {
         }
 
         OrderDTO orderDTO = new OrderDTO();
-        TextInputDialog dialog = new TextInputDialog("0.00");
+        TextInputDialog dialog = new TextInputDialog(lblFinalPrice.getText());
         dialog.setTitle("Payment");
         dialog.setHeaderText("Enter the amount paid by the customer:");
         dialog.setContentText("Paid Money:");
@@ -258,6 +258,10 @@ public class SalesOrderController {
                 double paidMoney = Double.parseDouble(input.trim());
                 if (paidMoney < 0) {
                     Helper.createAlertError("Error", "Amount cannot be negative.").show();
+                    return;
+                }
+                if (paidMoney > Double.parseDouble(lblFinalPrice.getText())) {
+                    Helper.createAlertError("Error", "paidMoney can't be greater than order price").show();
                     return;
                 }
                 // Set the paid money in your DTO
