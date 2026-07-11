@@ -520,4 +520,23 @@ public class SalesOrderController {
         stage1.sizeToScene();
         stage1.show();
     }
+
+    @FXML
+    private void handleCustomerBalance(ActionEvent event) throws IOException {
+        FXMLLoader loader = new FXMLLoader(MainApplication.class.getResource("customer_balance_view.fxml"));
+        Parent root = loader.load();
+        Stage stage1 = new Stage();
+        stage1.setTitle("Customer Balance");
+        stage1.initOwner(this.stage);
+        stage1.initModality(Modality.APPLICATION_MODAL);
+        Scene scene = new Scene(root);
+        Helper.loadStyle(scene);
+        CustomerBalanceController controller = loader.getController();
+        controller.initialize(stage1);
+        stage1.setScene(scene);
+        stage1.setMinHeight(600);
+        stage1.setMinWidth(600);
+        stage1.sizeToScene();
+        stage1.show();
+    }
 }

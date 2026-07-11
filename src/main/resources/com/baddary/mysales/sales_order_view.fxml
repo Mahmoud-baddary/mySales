@@ -35,6 +35,8 @@
                                 <MenuItem mnemonicParsing="false" onAction="#handleMenuPurchaseOrder" text="Purchase Order" />
                                 <MenuItem mnemonicParsing="false" onAction="#handleMenuMyStock" text="My Stock" />
                                 <MenuItem mnemonicParsing="false" onAction="#handleMenuSearchOrders" text="Search Orders" />
+                                <MenuItem mnemonicParsing="false" onAction="#handleCustomerBalance" text="Customer Balance" />
+
                             </items>
                         </Menu>
                         <Menu mnemonicParsing="false" text="Admin">

@@ -34,6 +34,7 @@
                 <MenuItem mnemonicParsing="false" onAction="#handleMenuSalesOrder" text="Sales Order"/>
                 <MenuItem mnemonicParsing="false" onAction="#handleMenuSearchOrders" text="Search Orders"/>
                 <MenuItem mnemonicParsing="false" onAction="#handleMenuMyStock" text="My Stock"/>
+                <MenuItem mnemonicParsing="false" onAction="#handleCustomerBalance" text="Customer Balance"/>
               </items>
             </Menu>
             <Menu mnemonicParsing="false" text="Admin">
@@ -86,7 +87,6 @@
         </GridPane>
         <HBox alignment="CENTER_LEFT">
           <children>
-            
             <Label style="-fx-font-weight: bold;" text="Total Price:">
               <HBox.margin>
                 <Insets left="20.0"/>
