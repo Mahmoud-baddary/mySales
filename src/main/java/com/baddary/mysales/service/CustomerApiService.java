@@ -86,13 +86,13 @@ public class CustomerApiService {
         };
     }
 
-    public Task<CustomerDTO> updateCustomerBalanceAsync(long customerId, BigDecimal newBalance) {
+    public Task<CustomerDTO> updateCustomerBalanceAsync(long customerId, double newBalance) {
     return new Task<>() {
         @Override
         protected CustomerDTO call() throws Exception {
             // Create a Map for the JSON body
             Map<String, BigDecimal> payload = new HashMap<>();
-            payload.put("balance", newBalance);
+            payload.put("balance", BigDecimal.valueOf(newBalance));
 
             // Convert map to JSON string
             String jsonBody = objectMapper.writeValueAsString(payload);

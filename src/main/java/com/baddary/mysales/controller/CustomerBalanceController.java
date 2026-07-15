@@ -117,14 +117,14 @@ public class CustomerBalanceController {
     }
 
     private void showSettleDialog(CustomerBalanceRow selected) {
-        BigDecimal balance = BigDecimal.valueOf(selected.getBalance());
+        double balance = Math.abs(selected.getBalance());
         String labelText;
         String actionText;
-        if (balance.compareTo(BigDecimal.ZERO) > 0) {
-            labelText = "Customer owes you " + balance.toPlainString() + ". How much do you want to receive?";
+        if (selected.getStatus().equals(CustomerStatus.OWES)) {
+            labelText = "Customer owes you " + balance + ". How much do you want to receive?";
             actionText = "Receive Payment";
-        } else if (balance.compareTo(BigDecimal.ZERO) < 0) {
-            labelText = "You owe customer " + balance.abs().toPlainString() + ". How much do you want to pay?";
+        } else if (selected.getStatus().equals(CustomerStatus.DESERVES)) {
+            labelText = "You owe customer " + balance + ". How much do you want to pay?";
             actionText = "Pay Customer";
         } else {
             Helper.createAlertInfo("Zero Balance", "This customer's balance is already settled.").show();
@@ -132,27 +132,26 @@ public class CustomerBalanceController {
         }
 
         // Use TextInputDialog for amount input
-        TextInputDialog dialog = new TextInputDialog(balance.abs().toPlainString());
+        TextInputDialog dialog = new TextInputDialog(String.valueOf(balance));
         dialog.setTitle("Settle Balance");
         dialog.setHeaderText(labelText);
         dialog.setContentText("Amount:");
-        dialog.getEditor().setTextFormatter(Helper.getDecimalFormatter(2));
-
         Optional<String> result = dialog.showAndWait();
         result.ifPresent(input -> {
             try {
-                BigDecimal amount = new BigDecimal(input.trim());
-                if (amount.compareTo(BigDecimal.ZERO) <= 0) {
+                double amount = Double.parseDouble(input.trim());
+                if (amount <= 0) {
                     Helper.createAlertError("Error", "Amount must be positive.").show();
                     return;
                 }
                 // Ensure amount does not exceed absolute balance (optional)
-                if (amount.compareTo(balance.abs()) > 0) {
+                if (amount > balance) {
                     Helper.createAlertError("Error", "Amount cannot exceed the balance.").show();
                     return;
                 }
                 // Call API to update customer balance
-                //updateCustomerBalance(selected.getId(), balance, amount);
+                double newBalance = selected.getBalance() > 0 ? balance - amount : amount - balance;
+                customerApiService.updateCustomerBalanceAsync(selected.getId(), newBalance);
             } catch (NumberFormatException e) {
                 Helper.createAlertError("Error", "Invalid amount entered.").show();
             }
