@@ -8,12 +8,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import javafx.concurrent.Task;
 
+import java.math.BigDecimal;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 public class CustomerApiService {
@@ -58,6 +61,59 @@ public class CustomerApiService {
         };
     }
 
+    public Task<List<CustomerDTO>> searchByNameAndBalanceStatusAsync(String name, String balanceStatus) {
+        return new Task<List<CustomerDTO>>() {
+
+            @Override
+            protected List<CustomerDTO> call() throws Exception {
+                String url = BASE_URL + "/search-by-balance?name="
+                        + java.net.URLEncoder.encode(name, "UTF-8") + "&balanceStatus=" + balanceStatus;
+                HttpRequest request = addAuthHeader(HttpRequest.newBuilder())
+                        .uri(URI.create(url))
+                        .GET().build();
+                HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+                if (response.statusCode() == 200) {
+                    return objectMapper.readValue(response.body(),
+                            new com.fasterxml.jackson.core.type.TypeReference<List<CustomerDTO>>() {
+                            });
+                }
+                if (response.statusCode() == HttpURLConnection.HTTP_UNAUTHORIZED) {
+                    throw new UnauthorizedException("Token expired or invalid");
+                }
+                throw new RuntimeException("HTTP " + response.statusCode() + response.body());
+            }
+
+        };
+    }
+
+    public Task<CustomerDTO> updateCustomerBalanceAsync(long customerId, BigDecimal newBalance) {
+    return new Task<>() {
+        @Override
+        protected CustomerDTO call() throws Exception {
+            // Create a Map for the JSON body
+            Map<String, BigDecimal> payload = new HashMap<>();
+            payload.put("balance", newBalance);
+
+            // Convert map to JSON string
+            String jsonBody = objectMapper.writeValueAsString(payload);
+
+            // Build the request: PATCH /customers/{id}/balance
+            HttpRequest request = addAuthHeader(HttpRequest.newBuilder()
+                    .uri(URI.create(BASE_URL + "/" + customerId + "/balance"))
+                    .header("Content-Type", "application/json")
+                    .method("PATCH", HttpRequest.BodyPublishers.ofString(jsonBody)))
+                    .build();
+
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() == 200) {
+                return objectMapper.readValue(response.body(), CustomerDTO.class);
+            } else {
+                throw new RuntimeException("Update balance failed: HTTP " + response.statusCode() + " - " + response.body());
+            }
+        }
+    };
+}
+
     public Task<List<CustomerDTO>> searchByName(String name) {
         return new Task<>() {
             @Override
@@ -93,7 +149,7 @@ public class CustomerApiService {
                 HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
                 if (response.statusCode() == 200) {
                     return Optional.of(objectMapper.readValue(response.body(), CustomerDTO.class));
-                }else if (response.statusCode() == HttpURLConnection.HTTP_NOT_FOUND){
+                } else if (response.statusCode() == HttpURLConnection.HTTP_NOT_FOUND) {
                     return Optional.empty();
                 }
                 if (response.statusCode() == HttpURLConnection.HTTP_UNAUTHORIZED) {
@@ -116,7 +172,7 @@ public class CustomerApiService {
                 HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
                 if (response.statusCode() == 200) {
                     return Optional.of(objectMapper.readValue(response.body(), CustomerDTO.class));
-                }else if (response.statusCode() == HttpURLConnection.HTTP_NOT_FOUND){
+                } else if (response.statusCode() == HttpURLConnection.HTTP_NOT_FOUND) {
                     return Optional.empty();
                 }
                 if (response.statusCode() == HttpURLConnection.HTTP_UNAUTHORIZED) {
@@ -141,7 +197,7 @@ public class CustomerApiService {
                 System.out.println("Response body: " + response.body());
                 if (response.statusCode() == 200) {
                     return Optional.of(objectMapper.readValue(response.body(), CustomerDTO.class));
-                }else if (response.statusCode() == HttpURLConnection.HTTP_NOT_FOUND){
+                } else if (response.statusCode() == HttpURLConnection.HTTP_NOT_FOUND) {
                     return Optional.empty();
                 }
                 if (response.statusCode() == HttpURLConnection.HTTP_UNAUTHORIZED) {
