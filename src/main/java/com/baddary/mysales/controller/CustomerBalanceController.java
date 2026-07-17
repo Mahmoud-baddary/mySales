@@ -3,7 +3,6 @@ package com.baddary.mysales.controller;
 import com.baddary.mysales.dto.CustomerDTO;
 import com.baddary.mysales.enums.CustomerStatus;
 
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -120,13 +119,10 @@ public class CustomerBalanceController {
     private void showSettleDialog(CustomerBalanceRow selected) {
         double balance = Math.abs(selected.getBalance());
         String labelText;
-        String actionText;
         if (selected.getStatus().equals(CustomerStatus.OWES.name())) {
             labelText = "Customer owes you " + balance + ". How much do you want to receive?";
-            actionText = "Receive Payment";
         } else if (selected.getStatus().equals(CustomerStatus.DESERVES.name())) {
             labelText = "You owe customer " + balance + ". How much do you want to pay?";
-            actionText = "Pay Customer";
         } else {
             Helper.createAlertInfo("Zero Balance", "This customer's balance is already settled.").show();
             return;
