@@ -99,6 +99,7 @@ public class CustomerBalanceController {
             lblStatus.setText("No customer selected.");
             return;
         }
+        showSettleDialog(selected);
     }
 
     
@@ -120,10 +121,10 @@ public class CustomerBalanceController {
         double balance = Math.abs(selected.getBalance());
         String labelText;
         String actionText;
-        if (selected.getStatus().equals(CustomerStatus.OWES)) {
+        if (selected.getStatus().equals(CustomerStatus.OWES.name())) {
             labelText = "Customer owes you " + balance + ". How much do you want to receive?";
             actionText = "Receive Payment";
-        } else if (selected.getStatus().equals(CustomerStatus.DESERVES)) {
+        } else if (selected.getStatus().equals(CustomerStatus.DESERVES.name())) {
             labelText = "You owe customer " + balance + ". How much do you want to pay?";
             actionText = "Pay Customer";
         } else {
@@ -150,8 +151,10 @@ public class CustomerBalanceController {
                     return;
                 }
                 // Call API to update customer balance
-                double newBalance = selected.getBalance() > 0 ? balance - amount : amount - balance;
-                customerApiService.updateCustomerBalanceAsync(selected.getId(), newBalance);
+                Task<CustomerDTO> settleBalanceTask = customerApiService.settleCustomerBalanceAsync(selected.getId(), amount);
+                Helper.startTask(settleBalanceTask, e->{
+                    loadAllCustomers();
+                }, null, this.stage);
             } catch (NumberFormatException e) {
                 Helper.createAlertError("Error", "Invalid amount entered.").show();
             }

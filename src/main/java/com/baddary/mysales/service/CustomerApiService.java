@@ -86,20 +86,20 @@ public class CustomerApiService {
         };
     }
 
-    public Task<CustomerDTO> updateCustomerBalanceAsync(long customerId, double newBalance) {
+    public Task<CustomerDTO> settleCustomerBalanceAsync(long customerId, double amount) {
     return new Task<>() {
         @Override
         protected CustomerDTO call() throws Exception {
             // Create a Map for the JSON body
             Map<String, BigDecimal> payload = new HashMap<>();
-            payload.put("balance", BigDecimal.valueOf(newBalance));
+            payload.put("amount", BigDecimal.valueOf(amount));
 
             // Convert map to JSON string
             String jsonBody = objectMapper.writeValueAsString(payload);
 
             // Build the request: PATCH /customers/{id}/balance
             HttpRequest request = addAuthHeader(HttpRequest.newBuilder()
-                    .uri(URI.create(BASE_URL + "/" + customerId + "/balance"))
+                    .uri(URI.create(BASE_URL + "/" + customerId + "/settle"))
                     .header("Content-Type", "application/json")
                     .method("PATCH", HttpRequest.BodyPublishers.ofString(jsonBody)))
                     .build();
