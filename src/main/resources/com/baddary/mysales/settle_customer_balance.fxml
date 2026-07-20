@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.DatePicker?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Text?>
+
+<BorderPane minHeight="500.0" minWidth="900.0" xmlns="http://javafx.com/javafx/25.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.baddary.mysales.controller.SettleCustomerBalance">
+  <padding>
+    <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+  </padding>
+  <!-- Top: Search / Filter controls -->
+  <top>
+    <VBox spacing="15.0">
+      <Text style="-fx-font-size: 20px; -fx-font-weight: bold;" text="Sales Order Search" />
+      <!-- First row: Customer and Product -->
+      <HBox alignment="CENTER_LEFT" spacing="20.0">
+        <Label minWidth="70" style="-fx-font-weight: bold;" text="Customer:" />
+        <TextField fx:id="tfCustomerName" editable="false" promptText="Enter customer name" HBox.hgrow="ALWAYS" />
+      </HBox>
+      <!-- Second row: User and Date range -->
+      <HBox alignment="CENTER_LEFT" spacing="20.0">
+        <Label minWidth="70" style="-fx-font-weight: bold;" text="From Date:" />
+        <DatePicker fx:id="dpFromDate" promptText="dd/mm/yyyy" HBox.hgrow="ALWAYS" />
+        <Label minWidth="70" style="-fx-font-weight: bold;" text="To Date:" />
+        <DatePicker fx:id="dpToDate" promptText="dd/mm/yyyy" HBox.hgrow="ALWAYS" />
+      </HBox>
+      <!-- Third row: Order Type and Payment Type (as filters) -->
+      <HBox alignment="CENTER_LEFT" spacing="20.0">
+        <Label minWidth="70" style="-fx-font-weight: bold;" text="Order Type:" />
+        <ComboBox fx:id="cbOrderType" prefWidth="120">
+                    
+                </ComboBox>
+      </HBox>
+      <!-- Buttons: Search, Reset -->
+      <HBox alignment="CENTER_RIGHT" spacing="15.0">
+        <Button fx:id="btnSearch" onAction="#handleSearch" style="-fx-background-color: #2196F3; -fx-text-fill: white;" text="Search" />
+        <Button fx:id="btnReset" onAction="#handleReset" style="-fx-background-color: #9E9E9E; -fx-text-fill: white;" text="Reset" />
+      </HBox>
+    </VBox>
+  </top>
+
+  <!-- Center: TableView for orders (already includes Order Type and Payment Type columns) -->
+  <center>
+    <VBox spacing="10.0" VBox.vgrow="ALWAYS">
+      <Label style="-fx-font-weight: bold;" text="Sales Orders" />
+      <TableView fx:id="tblOrders" VBox.vgrow="ALWAYS">
+        <columns>
+          <TableColumn fx:id="colOrderId" prefWidth="80" text="Order ID">
+          </TableColumn>
+          <TableColumn fx:id="colOrderDate" prefWidth="100" text="Date">
+          </TableColumn>
+          <TableColumn fx:id="colOrderType" prefWidth="90" text="Order Type">
+          </TableColumn>
+          <TableColumn fx:id="colPaidMoney" prefWidth="100" text="paid money">
+          </TableColumn>
+          <TableColumn fx:id="colFinalPrice" prefWidth="100" text="Final price">
+          </TableColumn>
+          <TableColumn fx:id="colUser" prefWidth="120" text="User">
+          </TableColumn>
+        </columns>
+        <columnResizePolicy>
+          <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+        </columnResizePolicy>
+      </TableView>
+    </VBox>
+  </center>
+
+  <!-- Bottom: Action buttons -->
+  <bottom>
+    <HBox alignment="CENTER_RIGHT" spacing="15.0" style="-fx-padding: 10 0 0 0;">
+      <Button fx:id="btnViewDetails" onAction="#handleViewDetails" style="-fx-background-color: #4CAF50; -fx-text-fill: white;" text="View Details" />
+      <Button fx:id="btnClose" onAction="#handleClose" style="-fx-background-color: #f44336; -fx-text-fill: white;" text="Close" />
+    </HBox>
+  </bottom>
+</BorderPane>

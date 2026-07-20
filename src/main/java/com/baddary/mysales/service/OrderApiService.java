@@ -91,25 +91,26 @@ public class OrderApiService {
                 if (fromDate != null) {
                     if (!first)
                         urlBuilder.append("&");
-                    urlBuilder.append("fromDate=").append(fromDate.toString());
+                    urlBuilder.append("fromDate=").append(fromDate);
                     first = false;
                 }
                 if (toDate != null) {
                     if (!first)
                         urlBuilder.append("&");
-                    urlBuilder.append("toDate=").append(toDate.toString());
+                    urlBuilder.append("toDate=").append(toDate);
                     first = false;
                 }
                 if (orderType != null) {
                     if (!first)
                         urlBuilder.append("&");
-                    urlBuilder.append("orderType=").append(orderType.name());
+                    urlBuilder.append("orderType=").append(orderType);
                 }
 
                 HttpRequest request = addAuthHeader(HttpRequest.newBuilder()
                         .uri(URI.create(urlBuilder.toString()))
                         .GET())
                         .build();
+                System.out.println(request);
                 HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
                 if (response.statusCode() == 200) {
                     return objectMapper.readValue(response.body(),
@@ -120,7 +121,52 @@ public class OrderApiService {
                     throw new UnauthorizedException("Token expired or invalid");
                 }
 
-                throw new RuntimeException("Search failed: HTTP " + response.statusCode());
+                throw new RuntimeException("Search failed: HTTP " + response.statusCode() + response.body());
+
+            }
+        };
+    }
+
+    public Task<List<OrderDTO>> searchOrdersAsync(long customerId, LocalDate fromDate,
+            LocalDate toDate, OrderType orderType) {
+        return new Task<>() {
+            @Override
+            protected List<OrderDTO> call() throws Exception {
+                // Build URL with optional parameters
+                StringBuilder urlBuilder = new StringBuilder(BASE_URL + "/" + customerId + "/search?");
+                boolean first = true;
+                if (fromDate != null) {
+                    urlBuilder.append("fromDate=").append(fromDate);
+                    first = false;
+                }
+                if (toDate != null) {
+                    if (!first)
+                        urlBuilder.append("&");
+                    urlBuilder.append("toDate=").append(toDate);
+                    first = false;
+                }
+                if (orderType != null) {
+                    if (!first)
+                        urlBuilder.append("&");
+                    urlBuilder.append("orderType=").append(orderType);
+                }
+
+                HttpRequest request = addAuthHeader(HttpRequest.newBuilder()
+                        .uri(URI.create(urlBuilder.toString()))
+                        .GET())
+                        .build();
+                System.out.println(request);
+                HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+                if (response.statusCode() == 200) {
+                    return objectMapper.readValue(response.body(),
+                            new TypeReference<List<OrderDTO>>() {
+                            });
+                }
+                if (response.statusCode() == HttpURLConnection.HTTP_UNAUTHORIZED) {
+                    throw new UnauthorizedException("Token expired or invalid");
+                }
+
+                throw new RuntimeException("Search failed: HTTP " + response.statusCode() + response.body());
 
             }
         };
@@ -138,7 +184,7 @@ public class OrderApiService {
                 HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
                 if (response.statusCode() == 200) {
                     return Optional.of(objectMapper.readValue(response.body(), OrderDTO.class));
-                }else if (response.statusCode() == HttpURLConnection.HTTP_NOT_FOUND){
+                } else if (response.statusCode() == HttpURLConnection.HTTP_NOT_FOUND) {
                     return Optional.empty();
                 }
                 if (response.statusCode() == HttpURLConnection.HTTP_UNAUTHORIZED) {
