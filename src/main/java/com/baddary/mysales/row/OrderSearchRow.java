@@ -12,8 +12,17 @@ public class OrderSearchRow {
     private final SimpleDoubleProperty paidMoney = new SimpleDoubleProperty();
     private final DoubleProperty finalPrice = new SimpleDoubleProperty();
     private final StringProperty userName = new SimpleStringProperty();
+    private final ReadOnlyDoubleWrapper remainingMoney = new ReadOnlyDoubleWrapper(0);
 
     // Constructor
+
+    public OrderSearchRow(){
+        remainingMoney.bind(finalPrice.subtract(paidMoney));
+    }
+
+    public double getRemainingMoney(){
+        return remainingMoney.get();
+    }
 
     // Getters and property getters (required for PropertyValueFactory)
     public long getId() { return id.get(); }

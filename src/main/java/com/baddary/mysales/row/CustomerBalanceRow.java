@@ -40,7 +40,7 @@ public class CustomerBalanceRow {
         this.name.set(name);
     }
     public void setBalance(double balance){
-        this.balance.set(balance);
+        this.balance.set(Math.abs(balance));
     }
     public void setStatus(String status){
         this.status.set(status);

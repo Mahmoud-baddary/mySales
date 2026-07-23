@@ -1,8 +1,10 @@
 package com.baddary.mysales.controller;
 
+import com.baddary.mysales.MainApplication;
 import com.baddary.mysales.dto.CustomerDTO;
 import com.baddary.mysales.enums.CustomerStatus;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
@@ -16,10 +18,14 @@ import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputDialog;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.scene.control.ComboBox;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TableColumn;
@@ -92,13 +98,32 @@ public class CustomerBalanceController {
     }
 
     @FXML
-    private void handleSettle(ActionEvent event) {
+    private void handleSettle(ActionEvent event) throws IOException {
         CustomerBalanceRow selected = tblCustomers.getSelectionModel().getSelectedItem();
         if (selected == null) {
             lblStatus.setText("No customer selected.");
             return;
         }
-        showSettleDialog(selected);
+        //showSettleDialog(selected);
+        showBalanceDetails(selected);
+    }
+
+    private void showBalanceDetails(CustomerBalanceRow selected) throws IOException{
+        FXMLLoader loader = new FXMLLoader(MainApplication.class.getResource("settle_customer_balance.fxml"));
+        Parent root = loader.load();
+        Stage stage1 = new Stage();
+        stage1.setTitle("Settle Customer Balance");
+        stage1.initOwner(this.stage);
+        stage1.initModality(Modality.APPLICATION_MODAL);
+        Scene scene = new Scene(root);
+        Helper.loadStyle(scene);
+        SettleCustomerBalanceController controller = loader.getController();
+        controller.initialize(stage1, selected);
+        stage1.setScene(scene);
+        stage1.setMinHeight(500);
+        stage1.setMinWidth(700);
+        stage1.sizeToScene();
+        stage1.show();
     }
 
     

@@ -13,18 +13,18 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Text?>
 
-<BorderPane minHeight="500.0" minWidth="900.0" xmlns="http://javafx.com/javafx/25.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.baddary.mysales.controller.SettleCustomerBalance">
+<BorderPane minHeight="500.0" minWidth="900.0" xmlns="http://javafx.com/javafx/25.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.baddary.mysales.controller.SettleCustomerBalanceController">
   <padding>
     <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
   </padding>
   <!-- Top: Search / Filter controls -->
   <top>
     <VBox spacing="15.0">
-      <Text style="-fx-font-size: 20px; -fx-font-weight: bold;" text="Sales Order Search" />
+      <Text style="-fx-font-size: 20px; -fx-font-weight: bold;" text="Settle Customer Balance" />
       <!-- First row: Customer and Product -->
       <HBox alignment="CENTER_LEFT" spacing="20.0">
         <Label minWidth="70" style="-fx-font-weight: bold;" text="Customer:" />
-        <TextField fx:id="tfCustomerName" editable="false" promptText="Enter customer name" HBox.hgrow="ALWAYS" />
+        <TextField fx:id="tfCustomerName" editable="false" />
       </HBox>
       <!-- Second row: User and Date range -->
       <HBox alignment="CENTER_LEFT" spacing="20.0">
@@ -33,6 +33,16 @@
         <Label minWidth="70" style="-fx-font-weight: bold;" text="To Date:" />
         <DatePicker fx:id="dpToDate" promptText="dd/mm/yyyy" HBox.hgrow="ALWAYS" />
       </HBox>
+
+      <HBox alignment="CENTER_LEFT" spacing="20.0">
+        <Label minWidth="70" style="-fx-font-weight: bold;" text="Balance:" />
+        <TextField fx:id="tfBalance" editable="true" />
+        <Label minWidth="70" style="-fx-font-weight: bold;" text="discount:" />
+        <TextField fx:id="tfBalanceDiscount" editable="true" />
+        <Label minWidth="70" style="-fx-font-weight: bold;" text="amount to pay:" />
+        <TextField fx:id="tfAmountToPay" editable="false" />
+      </HBox>
+      
       <!-- Third row: Order Type and Payment Type (as filters) -->
       <HBox alignment="CENTER_LEFT" spacing="20.0">
         <Label minWidth="70" style="-fx-font-weight: bold;" text="Order Type:" />
@@ -45,13 +55,18 @@
         <Button fx:id="btnSearch" onAction="#handleSearch" style="-fx-background-color: #2196F3; -fx-text-fill: white;" text="Search" />
         <Button fx:id="btnReset" onAction="#handleReset" style="-fx-background-color: #9E9E9E; -fx-text-fill: white;" text="Reset" />
       </HBox>
+      <HBox alignment="CENTER_LEFT" spacing="20.0">
+        <Label minWidth="70" style="-fx-font-weight: bold;" text="Orders total price:" />
+        <TextField fx:id="tfOrdersPrice" editable="false" />
+        <Button fx:id="btnMakeBalance" onAction="#handleMakeBalance" style="-fx-background-color: #2196F3; -fx-text-fill: white;" text="Make Balance" />
+      </HBox>
     </VBox>
   </top>
 
   <!-- Center: TableView for orders (already includes Order Type and Payment Type columns) -->
   <center>
     <VBox spacing="10.0" VBox.vgrow="ALWAYS">
-      <Label style="-fx-font-weight: bold;" text="Sales Orders" />
+      <Label style="-fx-font-weight: bold;" text="Orders" />
       <TableView fx:id="tblOrders" VBox.vgrow="ALWAYS">
         <columns>
           <TableColumn fx:id="colOrderId" prefWidth="80" text="Order ID">
@@ -77,6 +92,7 @@
   <!-- Bottom: Action buttons -->
   <bottom>
     <HBox alignment="CENTER_RIGHT" spacing="15.0" style="-fx-padding: 10 0 0 0;">
+      <Button fx:id="btnSettle" onAction="#handleSettle" style="-fx-background-color: #4CAF50; -fx-text-fill: white;" text="Settle" />
       <Button fx:id="btnViewDetails" onAction="#handleViewDetails" style="-fx-background-color: #4CAF50; -fx-text-fill: white;" text="View Details" />
       <Button fx:id="btnClose" onAction="#handleClose" style="-fx-background-color: #f44336; -fx-text-fill: white;" text="Close" />
     </HBox>
