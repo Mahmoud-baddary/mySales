@@ -174,6 +174,10 @@ public class SettleCustomerBalanceController {
 
     @FXML
     private void handleSettle(ActionEvent event) {
+        Helper.createAlertConfirm("Confirm payment", "Settle Customer Balance", 
+        "Are you sure to settle this customer balance", ()->{
+            
+        });
     }
 
     @FXML

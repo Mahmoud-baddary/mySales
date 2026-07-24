@@ -6,11 +6,13 @@ import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.TextArea;
 import javafx.stage.Stage;
 
 import java.io.IOException;
 import java.util.Objects;
+import java.util.Optional;
 
 import com.baddary.mysales.MainApplication;
 import com.baddary.mysales.exception.UnauthorizedException;
@@ -124,6 +126,25 @@ public class Helper {
         } catch (IOException ex) {
             ex.printStackTrace();
         }
+    }
+
+    public static void createAlertConfirm(String title, String headerTxt, String content,
+            OnBtnOkClicked onBtnOkClicked) {
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle(title);
+        alert.setHeaderText(headerTxt);
+        alert.setContentText(content);
+        Optional<ButtonType> result = alert.showAndWait();
+        if (result.isPresent() && result.get() == ButtonType.OK) {
+            onBtnOkClicked.onBtnOkClicked();
+        } else {
+
+        }
+    }
+
+    @FunctionalInterface
+    public interface OnBtnOkClicked {
+        void onBtnOkClicked();
     }
 
 }

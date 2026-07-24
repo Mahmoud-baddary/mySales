@@ -105,6 +105,10 @@ public class CustomerBalanceController {
             return;
         }
         //showSettleDialog(selected);
+        if (selected.getStatus().equals(CustomerStatus.SETTLED.name())) {
+            Helper.createAlertInfo("No Action needed", "The balance of this customer is SELTTLED");
+            return;
+        }
         showBalanceDetails(selected);
     }
 
