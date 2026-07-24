@@ -10,6 +10,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 import com.baddary.mysales.dto.OrderDTO;
+import com.baddary.mysales.enums.CustomerStatus;
 import com.baddary.mysales.enums.OrderType;
 import com.baddary.mysales.helper.Helper;
 import com.baddary.mysales.mapper.OrderMapper;
@@ -87,7 +88,13 @@ public class SettleCustomerBalanceController {
         this.customer = customer;
         tfCustomerName.setText(customer.getName());
         tfBalance.setText(String.valueOf(customer.getBalance()));
-        cbOrderType.getItems().addAll("ALL", OrderType.BUY.name(), OrderType.SALE.name());
+        cbOrderType.getItems().addAll(OrderType.BUY.name(), OrderType.SALE.name());
+        // select order type according to status
+        if (customer.getStatus().equals(CustomerStatus.DESERVES.name())) {
+            cbOrderType.setValue(OrderType.BUY.name());
+        }else{
+            cbOrderType.setValue(OrderType.SALE.name());
+        }
         tfStatus.setText(customer.getStatus());
         // table value
         tblOrders.setItems(orderRows);

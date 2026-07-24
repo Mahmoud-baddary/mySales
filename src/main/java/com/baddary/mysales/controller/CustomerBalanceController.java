@@ -122,7 +122,7 @@ public class CustomerBalanceController {
         stage1.setScene(scene);
         stage1.setMinHeight(500);
         stage1.setMinWidth(700);
-        stage1.sizeToScene();
+        //stage1.sizeToScene();
         stage1.show();
     }
 
