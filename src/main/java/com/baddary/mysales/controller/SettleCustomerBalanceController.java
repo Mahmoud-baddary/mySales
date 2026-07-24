@@ -188,7 +188,7 @@ public class SettleCustomerBalanceController {
     private double parseDouble(String text) {
         if (text == null || text.isBlank()) {
             return 0.0;
-        }
+    }
         try {
             return Double.parseDouble(text);
         } catch (NumberFormatException e) {
