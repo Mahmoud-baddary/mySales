@@ -28,6 +28,8 @@
         <TextField fx:id="tfCustomerName" editable="false"/>
         <Label minWidth="70" style="-fx-font-weight: bold;" text="Status:"/>
         <TextField fx:id="tfStatus" editable="false"/>
+        <Label minWidth="70" style="-fx-font-weight: bold;" text="Balance:"/>
+        <TextField fx:id="tfBalance" editable="false"/>
       </HBox>
       <!-- Second row: User and Date range -->
       <HBox alignment="CENTER_LEFT" spacing="20.0">
@@ -37,11 +39,11 @@
         <DatePicker fx:id="dpToDate" promptText="dd/mm/yyyy" HBox.hgrow="ALWAYS"/>
       </HBox>
       <HBox alignment="CENTER_LEFT" spacing="20.0">
-        <Label minWidth="70" style="-fx-font-weight: bold;" text="Balance:"/>
-        <TextField fx:id="tfBalance" editable="true"/>
+        <Label minWidth="70" style="-fx-font-weight: bold;" text="Amount:"/>
+        <TextField fx:id="tfAmount" editable="true"/>
         <Label minWidth="70" style="-fx-font-weight: bold;" text="discount:"/>
-        <TextField fx:id="tfBalanceDiscount" editable="true"/>
-        <Label minWidth="70" style="-fx-font-weight: bold;" text="amount to pay:"/>
+        <TextField fx:id="tfDiscount" editable="true"/>
+        <Label minWidth="70" style="-fx-font-weight: bold;" text="Amount To Pay:"/>
         <TextField fx:id="tfAmountToPay" editable="false"/>
       </HBox>
       <!-- Third row: Order Type and Payment Type (as filters) -->

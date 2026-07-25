@@ -2,20 +2,25 @@ package com.baddary.mysales.controller;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.TextField;
+import javafx.scene.control.TextFormatter;
 import javafx.stage.Stage;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.ComboBox;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
+import com.baddary.mysales.dto.CustomerDTO;
 import com.baddary.mysales.dto.OrderDTO;
 import com.baddary.mysales.enums.CustomerStatus;
 import com.baddary.mysales.enums.OrderType;
 import com.baddary.mysales.helper.Helper;
+import com.baddary.mysales.mapper.CustomerMapper;
 import com.baddary.mysales.mapper.OrderMapper;
 import com.baddary.mysales.row.CustomerBalanceRow;
 import com.baddary.mysales.row.OrderSearchRow;
+import com.baddary.mysales.service.CustomerApiService;
 import com.baddary.mysales.service.OrderApiService;
 
 import javafx.beans.binding.Bindings;
@@ -75,35 +80,61 @@ public class SettleCustomerBalanceController {
     private OrderApiService orderApiService = new OrderApiService();
     private final ObservableList<OrderSearchRow> orderRows = FXCollections.observableArrayList();
     @FXML
-    private TextField tfBalanceDiscount;
+    private TextField tfDiscount;
     @FXML
     private TextField tfAmountToPay;
     @FXML
     private Button btnMakeBalance;
     @FXML
     private TextField tfStatus;
+    @FXML
+    private TextField tfAmount;
+
+    private final CustomerApiService customerApiService = new CustomerApiService();
 
     public void initialize(Stage stage, CustomerBalanceRow customer) {
         this.stage = stage;
         this.customer = customer;
         tfCustomerName.setText(customer.getName());
         tfBalance.setText(String.valueOf(customer.getBalance()));
+        tfAmount.setText(String.valueOf(customer.getBalance()));
         cbOrderType.getItems().addAll(OrderType.BUY.name(), OrderType.SALE.name());
+        tfDiscount.setText("0");
         // select order type according to status
         if (customer.getStatus().equals(CustomerStatus.DESERVES.name())) {
             cbOrderType.setValue(OrderType.BUY.name());
-        }else{
+        } else {
             cbOrderType.setValue(OrderType.SALE.name());
         }
         tfStatus.setText(customer.getStatus());
         // table value
         tblOrders.setItems(orderRows);
-        colFinalPrice.setCellValueFactory(cellData-> cellData.getValue().finalPriceProperty());
-        colOrderDate.setCellValueFactory(cellData-> cellData.getValue().dateProperty());
-        colOrderId.setCellValueFactory(cellData-> cellData.getValue().idProperty());
-        colOrderType.setCellValueFactory(cellData-> cellData.getValue().orderTypeProperty());
-        colPaidMoney.setCellValueFactory(cellData-> cellData.getValue().paidMoneyProperty());
-        colUser.setCellValueFactory(cellData-> cellData.getValue().userNameProperty());
+        colFinalPrice.setCellValueFactory(cellData -> cellData.getValue().finalPriceProperty());
+        colOrderDate.setCellValueFactory(cellData -> cellData.getValue().dateProperty());
+        colOrderId.setCellValueFactory(cellData -> cellData.getValue().idProperty());
+        colOrderType.setCellValueFactory(cellData -> cellData.getValue().orderTypeProperty());
+        colPaidMoney.setCellValueFactory(cellData -> cellData.getValue().paidMoneyProperty());
+        colUser.setCellValueFactory(cellData -> cellData.getValue().userNameProperty());
+
+        // prevent user from inserting a non valid input in amount and discount
+        TextFormatter<String> discountFormatter = new TextFormatter<>(change -> {
+            try {
+                Double.parseDouble(change.getControlNewText());
+            } catch (NumberFormatException e) {
+                return null;
+            }
+            return change;
+        });
+        tfDiscount.setTextFormatter(discountFormatter);
+        TextFormatter<String> amountFormatter = new TextFormatter<>(change -> {
+            try {
+                Double.parseDouble(change.getControlNewText());
+            } catch (NumberFormatException e) {
+                return null;
+            }
+            return change;
+        });
+        tfAmount.setTextFormatter(amountFormatter);
 
         // bind total remaining
         DoubleBinding totalRemainingBinding = Bindings.createDoubleBinding(
@@ -113,11 +144,11 @@ public class SettleCustomerBalanceController {
 
         // Bind tfAmount to the calculation of balance and discount
         tfAmountToPay.textProperty().bind(Bindings.createStringBinding(() -> {
-            double balance = parseDouble(tfBalance.getText());
-            double discount = parseDouble(tfBalanceDiscount.getText());
-            double amount = balance *(1 - discount/100);
-            return String.format("%.2f", amount);
-        }, tfBalance.textProperty(), tfBalanceDiscount.textProperty()));
+            double amount = Double.parseDouble(tfAmount.getText());
+            double discount = Double.parseDouble(tfDiscount.getText());
+            double amountToPay = amount * (1 - discount / 100);
+            return String.format("%.2f", amountToPay);
+        }, tfAmount.textProperty(), tfDiscount.textProperty()));
     }
 
     private void loadOrders(long customerId) {
@@ -160,7 +191,7 @@ public class SettleCustomerBalanceController {
         dpFromDate.setValue(null);
         dpToDate.setValue(null);
         orderRows.clear();
-        tfBalance.setText(String.valueOf(this.customer.getBalance()));
+        tfAmount.setText(String.valueOf(this.customer.getBalance()));
 
     }
 
@@ -174,25 +205,47 @@ public class SettleCustomerBalanceController {
 
     @FXML
     private void handleSettle(ActionEvent event) {
-        Helper.createAlertConfirm("Confirm payment", "Settle Customer Balance", 
-        "Are you sure to settle this customer balance", ()->{
-            
-        });
+        Helper.createAlertConfirm("Confirm payment", "Settle Customer Balance",
+                "Are you sure to settle this customer balance", () -> {
+                    // make sure that amount is not bigger than the balance
+                    double amount = Double.parseDouble(tfAmount.getText());
+                    double balance = Double.parseDouble(tfBalance.getText());
+                    if (amount > balance) {
+                        Helper.createAlertError("Wrong Amount", "Amount can't be greater than customer balance").show();
+                        return;
+                    }
+                    // update customer balance after subtract
+                    Task<CustomerDTO> settleCustomerBalanceAsync = customerApiService
+                            .settleCustomerBalanceAsync(this.customer.getId(), amount);
+                    Helper.startTask(settleCustomerBalanceAsync, e -> {
+                        Helper.createAlertInfo("Successful Operation", "Customer balance has been settled successfully")
+                                .show();
+                        Task<Optional<CustomerDTO>> byIdAsync = customerApiService.findByIdAsync(this.customer.getId());
+                        Helper.startTask(byIdAsync, ev->{
+                            Optional<CustomerDTO> dto = byIdAsync.getValue();
+                            this.customer = CustomerMapper.toBalanceRow(dto.get());
+                            tfBalance.setText(String.valueOf(this.customer.getBalance()));
+                            tfAmount.setText(String.valueOf(this.customer.getBalance()));
+                        }, null, stage);
+                    }, null, stage);
+                    // TODO: update store safe
+
+                });
     }
 
     @FXML
     private void handleMakeBalance(ActionEvent event) {
-        tfBalance.setText(tfOrdersPrice.getText());
+        tfAmount.setText(tfOrdersPrice.getText());
     }
 
-    private double parseDouble(String text) {
-        if (text == null || text.isBlank()) {
-            return 0.0;
-    }
-        try {
-            return Double.parseDouble(text);
-        } catch (NumberFormatException e) {
-            return 0.0;
-        }
-    }
+    // private double parseDouble(String text) {
+    // if (text == null || text.isBlank()) {
+    // return 0.0;
+    // }
+    // try {
+    // return Double.parseDouble(text);
+    // } catch (NumberFormatException e) {
+    // return 0.0;
+    // }
+    // }
 }

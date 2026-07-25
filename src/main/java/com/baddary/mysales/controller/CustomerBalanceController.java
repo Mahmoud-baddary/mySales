@@ -6,7 +6,6 @@ import com.baddary.mysales.enums.CustomerStatus;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Optional;
 
 import com.baddary.mysales.helper.Helper;
 import com.baddary.mysales.mapper.CustomerMapper;
@@ -20,7 +19,6 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.TextField;
-import javafx.scene.control.TextInputDialog;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.scene.control.ComboBox;
@@ -145,45 +143,45 @@ public class CustomerBalanceController {
 
     }
 
-    private void showSettleDialog(CustomerBalanceRow selected) {
-        double balance = Math.abs(selected.getBalance());
-        String labelText;
-        if (selected.getStatus().equals(CustomerStatus.OWES.name())) {
-            labelText = "Customer owes you " + balance + ". How much do you want to receive?";
-        } else if (selected.getStatus().equals(CustomerStatus.DESERVES.name())) {
-            labelText = "You owe customer " + balance + ". How much do you want to pay?";
-        } else {
-            Helper.createAlertInfo("Zero Balance", "This customer's balance is already settled.").show();
-            return;
-        }
+    // private void showSettleDialog(CustomerBalanceRow selected) {
+    //     double balance = Math.abs(selected.getBalance());
+    //     String labelText;
+    //     if (selected.getStatus().equals(CustomerStatus.OWES.name())) {
+    //         labelText = "Customer owes you " + balance + ". How much do you want to receive?";
+    //     } else if (selected.getStatus().equals(CustomerStatus.DESERVES.name())) {
+    //         labelText = "You owe customer " + balance + ". How much do you want to pay?";
+    //     } else {
+    //         Helper.createAlertInfo("Zero Balance", "This customer's balance is already settled.").show();
+    //         return;
+    //     }
 
-        // Use TextInputDialog for amount input
-        TextInputDialog dialog = new TextInputDialog(String.valueOf(balance));
-        dialog.setTitle("Settle Balance");
-        dialog.setHeaderText(labelText);
-        dialog.setContentText("Amount:");
-        Optional<String> result = dialog.showAndWait();
-        result.ifPresent(input -> {
-            try {
-                double amount = Double.parseDouble(input.trim());
-                if (amount <= 0) {
-                    Helper.createAlertError("Error", "Amount must be positive.").show();
-                    return;
-                }
-                // Ensure amount does not exceed absolute balance (optional)
-                if (amount > balance) {
-                    Helper.createAlertError("Error", "Amount cannot exceed the balance.").show();
-                    return;
-                }
-                // Call API to update customer balance
-                Task<CustomerDTO> settleBalanceTask = customerApiService.settleCustomerBalanceAsync(selected.getId(), amount);
-                Helper.startTask(settleBalanceTask, e->{
-                    loadAllCustomers();
-                }, null, this.stage);
-            } catch (NumberFormatException e) {
-                Helper.createAlertError("Error", "Invalid amount entered.").show();
-            }
-        });
-    }
+    //     // Use TextInputDialog for amount input
+    //     TextInputDialog dialog = new TextInputDialog(String.valueOf(balance));
+    //     dialog.setTitle("Settle Balance");
+    //     dialog.setHeaderText(labelText);
+    //     dialog.setContentText("Amount:");
+    //     Optional<String> result = dialog.showAndWait();
+    //     result.ifPresent(input -> {
+    //         try {
+    //             double amount = Double.parseDouble(input.trim());
+    //             if (amount <= 0) {
+    //                 Helper.createAlertError("Error", "Amount must be positive.").show();
+    //                 return;
+    //             }
+    //             // Ensure amount does not exceed absolute balance (optional)
+    //             if (amount > balance) {
+    //                 Helper.createAlertError("Error", "Amount cannot exceed the balance.").show();
+    //                 return;
+    //             }
+    //             // Call API to update customer balance
+    //             Task<CustomerDTO> settleBalanceTask = customerApiService.settleCustomerBalanceAsync(selected.getId(), amount);
+    //             Helper.startTask(settleBalanceTask, e->{
+    //                 loadAllCustomers();
+    //             }, null, this.stage);
+    //         } catch (NumberFormatException e) {
+    //             Helper.createAlertError("Error", "Invalid amount entered.").show();
+    //         }
+    //     });
+    // }
 
 }
