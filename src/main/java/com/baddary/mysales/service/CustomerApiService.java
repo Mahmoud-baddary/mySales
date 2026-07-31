@@ -87,32 +87,36 @@ public class CustomerApiService {
     }
 
     public Task<CustomerDTO> settleCustomerBalanceAsync(long customerId, double amount) {
-    return new Task<>() {
-        @Override
-        protected CustomerDTO call() throws Exception {
-            // Create a Map for the JSON body
-            Map<String, BigDecimal> payload = new HashMap<>();
-            payload.put("amount", BigDecimal.valueOf(amount));
+        return new Task<>() {
+            @Override
+            protected CustomerDTO call() throws Exception {
+                // Create a Map for the JSON body
+                Map<String, BigDecimal> payload = new HashMap<>();
+                payload.put("amount", BigDecimal.valueOf(amount));
 
-            // Convert map to JSON string
-            String jsonBody = objectMapper.writeValueAsString(payload);
+                // Convert map to JSON string
+                String jsonBody = objectMapper.writeValueAsString(payload);
 
-            // Build the request: PATCH /customers/{id}/balance
-            HttpRequest request = addAuthHeader(HttpRequest.newBuilder()
-                    .uri(URI.create(BASE_URL + "/" + customerId + "/settle"))
-                    .header("Content-Type", "application/json")
-                    .method("PATCH", HttpRequest.BodyPublishers.ofString(jsonBody)))
-                    .build();
+                // Build the request: PATCH /customers/{id}/balance
+                HttpRequest request = addAuthHeader(HttpRequest.newBuilder()
+                        .uri(URI.create(BASE_URL + "/" + customerId + "/settle"))
+                        .header("Content-Type", "application/json")
+                        .method("PATCH", HttpRequest.BodyPublishers.ofString(jsonBody)))
+                        .build();
 
-            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-            if (response.statusCode() == 200) {
-                return objectMapper.readValue(response.body(), CustomerDTO.class);
-            } else {
-                throw new RuntimeException("Update balance failed: HTTP " + response.statusCode() + " - " + response.body());
+                HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+                if (response.statusCode() == 200) {
+                    return objectMapper.readValue(response.body(), CustomerDTO.class);
+                }
+                if (response.statusCode() == HttpURLConnection.HTTP_UNAUTHORIZED) {
+                    throw new UnauthorizedException("Token expired or invalid");
+                } else {
+                    throw new RuntimeException(
+                            "Update balance failed: HTTP " + response.statusCode() + " - " + response.body());
+                }
             }
-        }
-    };
-}
+        };
+    }
 
     public Task<List<CustomerDTO>> searchByName(String name) {
         return new Task<>() {

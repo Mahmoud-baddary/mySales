@@ -49,8 +49,7 @@ public class OrderApiService {
                         .POST(HttpRequest.BodyPublishers.ofString(json))
                         .build();
                 HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-                System.out.println("Response status: " + response.statusCode());
-                System.out.println("Response body: " + response.body());
+            
                 if (response.statusCode() == 201) {
                     return objectMapper.readValue(response.body(), OrderDTO.class);
                 }
@@ -155,7 +154,6 @@ public class OrderApiService {
                         .uri(URI.create(urlBuilder.toString()))
                         .GET())
                         .build();
-                System.out.println(request);
                 HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
                 if (response.statusCode() == 200) {
                     return objectMapper.readValue(response.body(),
