@@ -65,21 +65,6 @@ public class LoginController {
             // Store token and user info
             TokenStore.setToken(response.getToken());
             TokenStore.setCurrentUser(response.getUserId(), response.getUserName());
-            // add guest
-            Task<Long> customerCountTask = customerApiService.countAsync();
-            Helper.startTask(customerCountTask, e -> {
-                Long customerCount = customerCountTask.getValue();
-                if (customerCount == 0) { // add guest
-                    CustomerDTO dto = new CustomerDTO();
-                    dto.setName("guest");
-                    PhoneDTO phoneDTO = new PhoneDTO();
-                    phoneDTO.setPhoneNum("0000");
-                    dto.getPhoneDTOSet().add(phoneDTO);
-                    Task<CustomerDTO> addCustomerTask = customerApiService.addCustomerAsync(dto);
-                    Helper.startTask(addCustomerTask, null, null, stage);
-                }
-            }, null, this.stage);
-
             // Load the next screen
             try {
                 FXMLLoader loader = new FXMLLoader(MainApplication.class.getResource("sales_order_view.fxml"));

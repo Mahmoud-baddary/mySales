@@ -507,4 +507,17 @@ public class PurchaseOrderController {
         stage1.sizeToScene();
         stage1.show();
     }
+
+    @FXML
+    private void handleLogout(ActionEvent event) throws IOException {
+        TokenStore.clear();
+        FXMLLoader loader = new FXMLLoader(MainApplication.class.getResource("login_view.fxml"));
+        Parent root = loader.load();
+        this.stage.setTitle("Login");
+        Scene scene = new Scene(root);
+        Helper.loadStyle(scene);
+        this.stage.setScene(scene);
+        this.stage.sizeToScene();
+
+    }
 }
