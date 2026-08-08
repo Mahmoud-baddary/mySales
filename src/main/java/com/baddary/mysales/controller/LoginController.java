@@ -14,12 +14,9 @@ import javafx.stage.Stage;
 import java.io.IOException;
 
 import com.baddary.mysales.MainApplication;
-import com.baddary.mysales.dto.CustomerDTO;
 import com.baddary.mysales.dto.LoginResponseDTO;
-import com.baddary.mysales.dto.PhoneDTO;
 import com.baddary.mysales.helper.Helper;
 import com.baddary.mysales.service.AuthApiService;
-import com.baddary.mysales.service.CustomerApiService;
 import com.baddary.mysales.util.TokenStore;
 
 public class LoginController {
@@ -33,7 +30,6 @@ public class LoginController {
     @FXML
     public Label lblErrorMsg;
     private final AuthApiService authApiService = new AuthApiService();
-    private final CustomerApiService customerApiService = new CustomerApiService();
     private Stage stage;
 
     

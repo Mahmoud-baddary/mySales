@@ -233,6 +233,7 @@ public class ProductController {
         barcodeRows.clear();
         tfMUAmount.clear();
         tfSUAmount.clear();
+        tblProduct.getSelectionModel().clearSelection();
     }
 
     public void handleAddBarcode(ActionEvent event) {
