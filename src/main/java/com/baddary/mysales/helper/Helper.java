@@ -8,6 +8,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.TextArea;
+import javafx.scene.control.TextInputDialog;
 import javafx.stage.Stage;
 
 import java.io.IOException;
@@ -145,6 +146,17 @@ public class Helper {
     @FunctionalInterface
     public interface OnBtnOkClicked {
         void onBtnOkClicked();
+    }
+
+    public static TextInputDialog createTextInputDialog(String defaultValue, String title, String headerTxt,
+            String contentTxt) {
+        TextInputDialog dialog = new TextInputDialog(defaultValue);
+        dialog.setTitle(title);
+        dialog.setHeaderText(headerTxt);
+        dialog.setContentText(contentTxt);
+    
+        return dialog;
+
     }
 
 }

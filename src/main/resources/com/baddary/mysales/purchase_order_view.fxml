@@ -36,12 +36,13 @@
                 <MenuItem mnemonicParsing="false" onAction="#handleMenuMyStock" text="My Stock"/>
                 <MenuItem mnemonicParsing="false" onAction="#handleCustomerBalance" text="Customer Balance"/>
                 <MenuItem mnemonicParsing="false" onAction="#handleLogout" text="Logout"/>
-
               </items>
             </Menu>
             <Menu mnemonicParsing="false" text="Admin">
               <items>
                 <MenuItem mnemonicParsing="false" text="Add User" onAction="#handleMenuAddUser"/>
+                <MenuItem mnemonicParsing="false" text="Deposit Cash To Safe" onAction="#handleDepositCashToSafe"/>
+                <MenuItem mnemonicParsing="false" text="Receive Cash From Safe" onAction="#handleReceiveCashFromSafe"/>
               </items>
             </Menu>
             <Menu mnemonicParsing="false" text="Edit">

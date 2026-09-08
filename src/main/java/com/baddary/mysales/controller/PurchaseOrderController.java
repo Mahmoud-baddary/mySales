@@ -95,6 +95,7 @@ public class PurchaseOrderController {
     private final OrderApiService orderApiService = new OrderApiService();
     private final ProductApiService productApiService = new ProductApiService();
     private Stage stage;
+
     @FXML
 
     public void initialize(Stage stage) {
@@ -103,7 +104,6 @@ public class PurchaseOrderController {
         prepareTableCells();
         setupFocusSeries();
         tblProducts.setItems(purchaseRows);
-
 
         // formatter to prevent anything other than numbers
         TextFormatter<String> phoneNumFormatter = new TextFormatter<>(change -> {
@@ -247,10 +247,9 @@ public class PurchaseOrderController {
         }
         OrderDTO orderDTO = new OrderDTO();
 
-        TextInputDialog dialog = new TextInputDialog(lblFinalPrice.getText());
-        dialog.setTitle("Payment");
-        dialog.setHeaderText("Enter the amount paid by the store:");
-        dialog.setContentText("Paid Money:");
+        TextInputDialog dialog = Helper.createTextInputDialog(lblFinalPrice.getText(),
+                "Payment", "Enter the amount paid by the store:",
+                "Paid Money:");
 
         // Show the dialog and wait for user response
         Optional<String> result = dialog.showAndWait();
@@ -519,5 +518,13 @@ public class PurchaseOrderController {
         this.stage.setScene(scene);
         this.stage.sizeToScene();
 
+    }
+
+    @FXML
+    private void handleDepositCashToSafe(ActionEvent event) {
+    }
+
+    @FXML
+    private void handleReceiveCashFromSafe(ActionEvent event) {
     }
 }

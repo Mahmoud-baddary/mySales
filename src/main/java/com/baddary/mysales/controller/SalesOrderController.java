@@ -1,6 +1,7 @@
 package com.baddary.mysales.controller;
 
 import com.baddary.mysales.MainApplication;
+import com.baddary.mysales.dto.CashDTO;
 import com.baddary.mysales.dto.CustomerDTO;
 import com.baddary.mysales.dto.OrderDTO;
 import com.baddary.mysales.dto.OrderProductDTO;
@@ -10,9 +11,11 @@ import com.baddary.mysales.enums.OrderType;
 import com.baddary.mysales.helper.Helper;
 import com.baddary.mysales.mapper.OrderProductMapper;
 import com.baddary.mysales.row.OrderProductSaleRow;
+import com.baddary.mysales.service.CashApiService;
 import com.baddary.mysales.service.CustomerApiService;
 import com.baddary.mysales.service.OrderApiService;
 import com.baddary.mysales.service.ProductApiService;
+import com.baddary.mysales.service.SafeApiService;
 import com.baddary.mysales.service.StockApiService;
 import com.baddary.mysales.util.TokenStore;
 
@@ -40,6 +43,7 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.converter.NumberStringConverter;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
@@ -103,6 +107,8 @@ public class SalesOrderController {
     private final OrderApiService orderApiService = new OrderApiService();
     private final ProductApiService productApiService = new ProductApiService();
     private final StockApiService stockApiService = new StockApiService();
+    private final CashApiService cashApiService = new CashApiService();
+    private final SafeApiService safeApiService = new SafeApiService();
     private Stage stage;
 
     public void initialize(Stage stage) {
@@ -245,10 +251,10 @@ public class SalesOrderController {
         }
 
         OrderDTO orderDTO = new OrderDTO();
-        TextInputDialog dialog = new TextInputDialog(lblFinalPrice.getText());
-        dialog.setTitle("Payment");
-        dialog.setHeaderText("Enter the amount paid by the customer:");
-        dialog.setContentText("Paid Money:");
+
+        TextInputDialog dialog = Helper.createTextInputDialog(lblFinalPrice.getText(),
+                "Payment", "Enter the amount paid by the customer:",
+                "Paid Money:");
 
         // Show the dialog and wait for user response
         Optional<String> result = dialog.showAndWait();
@@ -391,6 +397,7 @@ public class SalesOrderController {
             } else {
                 row.setQuantity(event.getOldValue().doubleValue());
             }
+            tblProducts.refresh();
             tblProducts.requestFocus();
         });
         colBatch.setCellValueFactory(cellData -> cellData.getValue().batchProperty());
@@ -551,5 +558,88 @@ public class SalesOrderController {
         this.stage.setScene(scene);
         this.stage.sizeToScene();
 
+    }
+
+    @FXML
+    private void handleDepositCashToSafe(ActionEvent event) {
+        Long currentUserId = TokenStore.getCurrentUserId();
+        Task<BigDecimal> currentAmountAsync = cashApiService.currentAmountAsync(currentUserId);
+        Helper.startTask(currentAmountAsync, e -> {
+            BigDecimal currentAmount = currentAmountAsync.getValue();
+            TextInputDialog dialog = Helper.createTextInputDialog(currentAmount.toString(), "Deposit Cash To Saf",
+                    "Deposit cash to safe", "you will deposit .....");
+            Optional<String> result = dialog.showAndWait();
+            result.ifPresent(input -> {
+                try {
+                    double amountDouble = Double.parseDouble(input);
+                    BigDecimal amountToDeposit = BigDecimal.valueOf(amountDouble).setScale(2);
+                    if (amountToDeposit.compareTo(currentAmount) > 0) {
+                        Helper.createAlertError("Wrong Amount",
+                                "The amount to deposit must not be greater than the current cash of the user").show();
+                    } else if (amountToDeposit.compareTo(BigDecimal.ZERO) <= 0) {
+                        Helper.createAlertError("Wrong Amount", "The amount to deposit must be greater than ZERO")
+                                .show();
+                    } else {
+                        CashDTO cashDTO = new CashDTO();
+                        cashDTO.setUserId(currentUserId);
+                        cashDTO.setAmount(amountToDeposit);
+                        Task<Void> depositCashToSafeAsync = cashApiService.depositCashToSafeAsync(cashDTO);
+                        ;
+                        Helper.startTask(depositCashToSafeAsync, ev -> {
+                            Helper.createAlertInfo("DONE", "Money has been deposited into the safe successfully")
+                                    .show();
+                        }, null, stage);
+                    }
+
+                } catch (NumberFormatException exception) {
+                    Helper.createAlertError("Invalid Number", "Only numbers are allowed").show();
+
+                }
+            });
+        }, null, stage);
+    }
+
+    @FXML
+    private void handleReceiveCashFromSafe(ActionEvent event) {
+        Long userId = TokenStore.getCurrentUserId();
+        TextInputDialog dialog = Helper.createTextInputDialog("0", "Money Transfer", "Recieve Money From Safe",
+                "How much do you want to get from safe");
+        Optional<String> result = dialog.showAndWait();
+        result.ifPresent(input -> {
+            try {
+                double amount = Double.parseDouble(input);
+                BigDecimal amountToReceive = BigDecimal.valueOf(amount).setScale(2);
+                if(amountToReceive.compareTo(BigDecimal.ZERO) <= 0){
+                        Helper.createAlertError("Wrong Amount", "The amount to receive must be greater than ZERO").show();
+                }else {
+                    CashDTO cashDTO = new CashDTO();
+                    cashDTO.setAmount(amountToReceive);
+                    cashDTO.setUserId(userId);
+                  Task<Void> receiveCashFromSafeAsync = cashApiService.receiveCashFromSafeAsync(cashDTO);
+                  Helper.startTask(receiveCashFromSafeAsync, e->{
+                    Helper.createAlertInfo("Successful Operation", "You have recieved the cash successfully").show();
+                  }, null, stage);
+                }
+            } catch (NumberFormatException e) {
+                Helper.createAlertError("Invalid Number", "Only numbers are allowed").show();
+            }
+        });
+    }
+
+    @FXML
+    private void handleSafeBalance(ActionEvent event) {
+        Task<BigDecimal> totalAmountAsync = safeApiService.totalAmountAsync();
+        Helper.startTask(totalAmountAsync, e->{
+            Helper.createAlertInfo("Safe Balance ", totalAmountAsync.getValue().toString()).show();
+        }, null, stage);
+    }
+
+    @FXML
+    private void handleMyBalance(ActionEvent event) {
+        Task<BigDecimal> currentAmountAsync = cashApiService.currentAmountAsync(TokenStore.getCurrentUserId());;
+        Helper.startTask(currentAmountAsync, e->{
+            BigDecimal value = currentAmountAsync.getValue();
+            Helper.createAlertInfo("My Balance", "My Balance is " + value.toString()).show();
+        }, null, stage);
     }
 }

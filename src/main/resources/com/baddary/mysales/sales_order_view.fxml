@@ -41,9 +41,16 @@
 
                             </items>
                         </Menu>
-                        <Menu mnemonicParsing="false" text="Admin">
+                        <Menu mnemonicParsing="false" text="User">
                             <items>
                                 <MenuItem mnemonicParsing="false" text="Add User" onAction="#handleMenuAddUser"/>
+                                <MenuItem mnemonicParsing="false" text="Deposit Cash To Safe" onAction="#handleDepositCashToSafe"/>
+                                <MenuItem mnemonicParsing="false" text="Receive Cash From Safe" onAction="#handleReceiveCashFromSafe"/>
+                                <MenuItem mnemonicParsing="false" text="My Balance" onAction="#handleMyBalance"/>
+                                <MenuItem mnemonicParsing="false" text="Safe Balance" onAction="#handleSafeBalance"/>
+
+
+
                             </items>
                         </Menu>
                         <Menu mnemonicParsing="false" text="Edit">

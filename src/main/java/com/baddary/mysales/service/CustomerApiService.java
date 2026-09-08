@@ -1,5 +1,6 @@
 package com.baddary.mysales.service;
 
+import com.baddary.mysales.dto.CashDTO;
 import com.baddary.mysales.dto.CustomerDTO;
 import com.baddary.mysales.exception.UnauthorizedException;
 import com.baddary.mysales.util.TokenStore;
@@ -86,22 +87,17 @@ public class CustomerApiService {
         };
     }
 
-    public Task<CustomerDTO> settleCustomerBalanceAsync(long customerId, double amount) {
+    public Task<CustomerDTO> settleCustomerBalanceAsync(long customerId, CashDTO cashDTO) {
         return new Task<>() {
             @Override
             protected CustomerDTO call() throws Exception {
-                // Create a Map for the JSON body
-                Map<String, BigDecimal> payload = new HashMap<>();
-                payload.put("amount", BigDecimal.valueOf(amount));
-
-                // Convert map to JSON string
-                String jsonBody = objectMapper.writeValueAsString(payload);
+                String jsonBody = objectMapper.writeValueAsString(cashDTO);
 
                 // Build the request: PATCH /customers/{id}/balance
                 HttpRequest request = addAuthHeader(HttpRequest.newBuilder()
                         .uri(URI.create(BASE_URL + "/" + customerId + "/settle"))
                         .header("Content-Type", "application/json")
-                        .method("PATCH", HttpRequest.BodyPublishers.ofString(jsonBody)))
+                        .POST(HttpRequest.BodyPublishers.ofString(jsonBody)))
                         .build();
 
                 HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());

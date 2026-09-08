@@ -7,10 +7,12 @@ import javafx.stage.Stage;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.ComboBox;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
+import com.baddary.mysales.dto.CashDTO;
 import com.baddary.mysales.dto.CustomerDTO;
 import com.baddary.mysales.dto.OrderDTO;
 import com.baddary.mysales.enums.CustomerStatus;
@@ -22,6 +24,7 @@ import com.baddary.mysales.row.CustomerBalanceRow;
 import com.baddary.mysales.row.OrderSearchRow;
 import com.baddary.mysales.service.CustomerApiService;
 import com.baddary.mysales.service.OrderApiService;
+import com.baddary.mysales.util.TokenStore;
 
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.DoubleBinding;
@@ -215,8 +218,11 @@ public class SettleCustomerBalanceController {
                         return;
                     }
                     // update customer balance after subtract
+                    CashDTO cashDTO = new CashDTO();
+                    cashDTO.setAmount(BigDecimal.valueOf(amount).setScale(2));
+                    cashDTO.setUserId(TokenStore.getCurrentUserId());
                     Task<CustomerDTO> settleCustomerBalanceAsync = customerApiService
-                            .settleCustomerBalanceAsync(this.customer.getId(), amount);
+                            .settleCustomerBalanceAsync(this.customer.getId(), cashDTO);
                     Helper.startTask(settleCustomerBalanceAsync, e -> {
                         Helper.createAlertInfo("Successful Operation", "Customer balance has been settled successfully")
                                 .show();
@@ -228,7 +234,6 @@ public class SettleCustomerBalanceController {
                             tfAmount.setText(String.valueOf(this.customer.getBalance()));
                         }, null, stage);
                     }, null, stage);
-                    // TODO: update store safe
 
                 });
     }
