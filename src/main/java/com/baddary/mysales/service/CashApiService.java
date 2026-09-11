@@ -8,7 +8,6 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
 import com.baddary.mysales.dto.CashDTO;
-import com.baddary.mysales.dto.CustomerDTO;
 import com.baddary.mysales.exception.UnauthorizedException;
 import com.baddary.mysales.util.TokenStore;
 import com.fasterxml.jackson.databind.ObjectMapper;

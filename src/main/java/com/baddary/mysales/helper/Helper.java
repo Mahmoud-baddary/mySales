@@ -12,12 +12,17 @@ import javafx.scene.control.TextInputDialog;
 import javafx.stage.Stage;
 
 import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.http.HttpResponse;
 import java.util.Objects;
 import java.util.Optional;
 
 import com.baddary.mysales.MainApplication;
 import com.baddary.mysales.exception.UnauthorizedException;
 import com.baddary.mysales.util.TokenStore;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class Helper {
 
@@ -154,9 +159,22 @@ public class Helper {
         dialog.setTitle(title);
         dialog.setHeaderText(headerTxt);
         dialog.setContentText(contentTxt);
-    
+
         return dialog;
 
+    }
+
+    public static Exception getRelatedException(HttpResponse<String> response) {
+
+        switch (response.statusCode()) {
+            case HttpURLConnection.HTTP_UNAUTHORIZED:
+                return new UnauthorizedException("Token expired or invalid");
+            case HttpURLConnection.HTTP_CONFLICT:
+                return new RuntimeException("There is another operation that conflict this operation please try again");
+            default:
+                return new RuntimeException("HTTP " + response.statusCode() + response.body());
+
+        }
     }
 
 }

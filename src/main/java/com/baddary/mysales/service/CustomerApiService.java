@@ -1,24 +1,22 @@
 package com.baddary.mysales.service;
 
-import com.baddary.mysales.dto.CashDTO;
-import com.baddary.mysales.dto.CustomerDTO;
-import com.baddary.mysales.exception.UnauthorizedException;
-import com.baddary.mysales.util.TokenStore;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import javafx.concurrent.Task;
-
-import java.math.BigDecimal;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
+
+import com.baddary.mysales.dto.CashDTO;
+import com.baddary.mysales.dto.CustomerDTO;
+import com.baddary.mysales.helper.Helper;
+import com.baddary.mysales.util.TokenStore;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+
+import javafx.concurrent.Task;
 
 public class CustomerApiService {
     private static final String BASE_URL = "http://localhost:8080/customers";
@@ -54,10 +52,7 @@ public class CustomerApiService {
                             new com.fasterxml.jackson.core.type.TypeReference<List<CustomerDTO>>() {
                             });
                 }
-                if (response.statusCode() == HttpURLConnection.HTTP_UNAUTHORIZED) {
-                    throw new UnauthorizedException("Token expired or invalid");
-                }
-                throw new RuntimeException("HTTP " + response.statusCode() + response.body());
+                throw Helper.getRelatedException(response);
             }
         };
     }
@@ -78,10 +73,8 @@ public class CustomerApiService {
                             new com.fasterxml.jackson.core.type.TypeReference<List<CustomerDTO>>() {
                             });
                 }
-                if (response.statusCode() == HttpURLConnection.HTTP_UNAUTHORIZED) {
-                    throw new UnauthorizedException("Token expired or invalid");
-                }
-                throw new RuntimeException("HTTP " + response.statusCode() + response.body());
+                throw Helper.getRelatedException(response);
+
             }
 
         };
@@ -104,12 +97,8 @@ public class CustomerApiService {
                 if (response.statusCode() == 200) {
                     return objectMapper.readValue(response.body(), CustomerDTO.class);
                 }
-                if (response.statusCode() == HttpURLConnection.HTTP_UNAUTHORIZED) {
-                    throw new UnauthorizedException("Token expired or invalid");
-                } else {
-                    throw new RuntimeException(
-                            "Update balance failed: HTTP " + response.statusCode() + " - " + response.body());
-                }
+                throw Helper.getRelatedException(response);
+
             }
         };
     }
@@ -129,10 +118,8 @@ public class CustomerApiService {
                             new com.fasterxml.jackson.core.type.TypeReference<List<CustomerDTO>>() {
                             });
                 }
-                if (response.statusCode() == HttpURLConnection.HTTP_UNAUTHORIZED) {
-                    throw new UnauthorizedException("Token expired or invalid");
-                }
-                throw new RuntimeException("HTTP " + response.statusCode() + response.body());
+                throw Helper.getRelatedException(response);
+
             }
         };
     }
@@ -152,10 +139,7 @@ public class CustomerApiService {
                 } else if (response.statusCode() == HttpURLConnection.HTTP_NOT_FOUND) {
                     return Optional.empty();
                 }
-                if (response.statusCode() == HttpURLConnection.HTTP_UNAUTHORIZED) {
-                    throw new UnauthorizedException("Token expired or invalid");
-                }
-                throw new RuntimeException("HTTP " + response.statusCode() + response.body());
+                throw Helper.getRelatedException(response);
             }
         };
     }
@@ -175,10 +159,8 @@ public class CustomerApiService {
                 } else if (response.statusCode() == HttpURLConnection.HTTP_NOT_FOUND) {
                     return Optional.empty();
                 }
-                if (response.statusCode() == HttpURLConnection.HTTP_UNAUTHORIZED) {
-                    throw new UnauthorizedException("Token expired or invalid");
-                }
-                throw new RuntimeException("HTTP " + response.statusCode() + response.body());
+                throw Helper.getRelatedException(response);
+
             }
         };
     }
@@ -200,10 +182,8 @@ public class CustomerApiService {
                 } else if (response.statusCode() == HttpURLConnection.HTTP_NOT_FOUND) {
                     return Optional.empty();
                 }
-                if (response.statusCode() == HttpURLConnection.HTTP_UNAUTHORIZED) {
-                    throw new UnauthorizedException("Token expired or invalid");
-                }
-                return Optional.empty();
+                throw Helper.getRelatedException(response);
+
             }
         };
     }
@@ -225,10 +205,7 @@ public class CustomerApiService {
                 if (response.statusCode() == 201) {
                     return objectMapper.readValue(response.body(), CustomerDTO.class);
                 }
-                if (response.statusCode() == HttpURLConnection.HTTP_UNAUTHORIZED) {
-                    throw new UnauthorizedException("Token expired or invalid");
-                }
-                throw new RuntimeException("Add failed: " + response.statusCode() + response.body());
+                throw Helper.getRelatedException(response);
             }
         };
     }
@@ -247,10 +224,7 @@ public class CustomerApiService {
                 if (response.statusCode() == 200) {
                     return objectMapper.readValue(response.body(), CustomerDTO.class);
                 }
-                if (response.statusCode() == HttpURLConnection.HTTP_UNAUTHORIZED) {
-                    throw new UnauthorizedException("Token expired or invalid");
-                }
-                throw new RuntimeException("Update failed: " + response.statusCode() + response.body());
+                throw Helper.getRelatedException(response);
             }
         };
     }
@@ -267,10 +241,8 @@ public class CustomerApiService {
                 if (response.statusCode() == 200) {
                     return objectMapper.readValue(response.body(), Long.class);
                 }
-                if (response.statusCode() == HttpURLConnection.HTTP_UNAUTHORIZED) {
-                    throw new UnauthorizedException("Token expired or invalid");
-                }
-                return 0L;
+                throw Helper.getRelatedException(response);
+
             }
         };
     }
@@ -288,10 +260,7 @@ public class CustomerApiService {
                     return objectMapper.readValue(response.body(), new TypeReference<List<String>>() {
                     });
                 }
-                if (response.statusCode() == HttpURLConnection.HTTP_UNAUTHORIZED) {
-                    throw new UnauthorizedException("Token expired or invalid");
-                }
-                throw new RuntimeException("Failed to fetch names: " + response.statusCode() + response.body());
+                throw Helper.getRelatedException(response);
             }
         };
     }

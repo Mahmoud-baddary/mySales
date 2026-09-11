@@ -11,7 +11,7 @@ import java.util.Optional;
 
 import com.baddary.mysales.dto.OrderDTO;
 import com.baddary.mysales.enums.OrderType;
-import com.baddary.mysales.exception.UnauthorizedException;
+import com.baddary.mysales.helper.Helper;
 import com.baddary.mysales.util.TokenStore;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -49,14 +49,11 @@ public class OrderApiService {
                         .POST(HttpRequest.BodyPublishers.ofString(json))
                         .build();
                 HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-            
+
                 if (response.statusCode() == 201) {
                     return objectMapper.readValue(response.body(), OrderDTO.class);
                 }
-                if (response.statusCode() == HttpURLConnection.HTTP_UNAUTHORIZED) {
-                    throw new UnauthorizedException("Token expired or invalid");
-                }
-                throw new RuntimeException("Add failed: " + response.statusCode() + response.body());
+                throw Helper.getRelatedException(response);
             }
         };
     }
@@ -116,11 +113,7 @@ public class OrderApiService {
                             new TypeReference<List<OrderDTO>>() {
                             });
                 }
-                if (response.statusCode() == HttpURLConnection.HTTP_UNAUTHORIZED) {
-                    throw new UnauthorizedException("Token expired or invalid");
-                }
-
-                throw new RuntimeException("Search failed: HTTP " + response.statusCode() + response.body());
+                throw Helper.getRelatedException(response);
 
             }
         };
@@ -160,11 +153,7 @@ public class OrderApiService {
                             new TypeReference<List<OrderDTO>>() {
                             });
                 }
-                if (response.statusCode() == HttpURLConnection.HTTP_UNAUTHORIZED) {
-                    throw new UnauthorizedException("Token expired or invalid");
-                }
-
-                throw new RuntimeException("Search failed: HTTP " + response.statusCode() + response.body());
+                throw Helper.getRelatedException(response);
 
             }
         };
@@ -185,10 +174,7 @@ public class OrderApiService {
                 } else if (response.statusCode() == HttpURLConnection.HTTP_NOT_FOUND) {
                     return Optional.empty();
                 }
-                if (response.statusCode() == HttpURLConnection.HTTP_UNAUTHORIZED) {
-                    throw new UnauthorizedException("Token expired or invalid");
-                }
-                throw new RuntimeException("HTTP " + response.statusCode() + response.body());
+                throw Helper.getRelatedException(response);
             }
         };
     }

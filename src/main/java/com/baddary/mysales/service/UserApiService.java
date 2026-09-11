@@ -1,12 +1,11 @@
 package com.baddary.mysales.service;
 
 import com.baddary.mysales.dto.UserDTO;
-import com.baddary.mysales.exception.UnauthorizedException;
+import com.baddary.mysales.helper.Helper;
 import com.baddary.mysales.util.TokenStore;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import javafx.concurrent.Task;
 
-import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -46,10 +45,7 @@ public class UserApiService {
                 if (response.statusCode() == 201) {
                     return objectMapper.readValue(response.body(), UserDTO.class);
                 }
-                if (response.statusCode() == HttpURLConnection.HTTP_UNAUTHORIZED) {
-                    throw new UnauthorizedException("Token expired or invalid");
-                }
-                throw new RuntimeException("Registration failed: HTTP " + response.statusCode() + response.body());
+                throw Helper.getRelatedException(response);
             }
         };
     }
@@ -68,7 +64,7 @@ public class UserApiService {
                 if (response.statusCode() == 201) {
                     return objectMapper.readValue(response.body(), UserDTO.class);
                 }
-                throw new RuntimeException("Registration failed: HTTP " + response.statusCode() + response.body());
+                throw Helper.getRelatedException(response);
             }
         };
     }
@@ -87,10 +83,7 @@ public class UserApiService {
                 } else if (response.statusCode() == 404) {
                     return Optional.empty();
                 }
-                if (response.statusCode() == HttpURLConnection.HTTP_UNAUTHORIZED) {
-                    throw new UnauthorizedException("Token expired or invalid");
-                }
-                throw new RuntimeException("Find user failed: HTTP " + response.statusCode() + response.body());
+                throw Helper.getRelatedException(response);
             }
         };
     }
@@ -107,7 +100,8 @@ public class UserApiService {
                 if (response.statusCode() == 200) {
                     return objectMapper.readValue(response.body(), Long.class);
                 }
-                return 0L;
+                throw Helper.getRelatedException(response);
+
             }
         };
     }

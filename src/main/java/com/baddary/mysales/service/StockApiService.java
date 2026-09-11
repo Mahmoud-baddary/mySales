@@ -1,13 +1,12 @@
 package com.baddary.mysales.service;
 
 import com.baddary.mysales.dto.StockDTO;
-import com.baddary.mysales.exception.UnauthorizedException;
+import com.baddary.mysales.helper.Helper;
 import com.baddary.mysales.util.TokenStore;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import javafx.concurrent.Task;
 
-import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -50,14 +49,12 @@ public class StockApiService {
                             new com.fasterxml.jackson.core.type.TypeReference<List<StockDTO>>() {
                             });
                 }
-                if (response.statusCode() == HttpURLConnection.HTTP_UNAUTHORIZED) {
-                    throw new UnauthorizedException("Token expired or invalid");
-                }
-                throw new RuntimeException("Failed to fetch stocks: " + response.statusCode()
-                        + response.body());
+                throw Helper.getRelatedException(response);
+
             }
         };
     }
+
     // GET /stocks/{productId}
     public Task<List<StockDTO>> findStocksAsync(String productName) {
         return new Task<>() {
@@ -73,11 +70,7 @@ public class StockApiService {
                             new com.fasterxml.jackson.core.type.TypeReference<List<StockDTO>>() {
                             });
                 }
-                if (response.statusCode() == HttpURLConnection.HTTP_UNAUTHORIZED) {
-                    throw new UnauthorizedException("Token expired or invalid");
-                }
-                throw new RuntimeException("Failed to fetch stocks: " + response.statusCode()
-                        + response.body());
+                throw Helper.getRelatedException(response);
             }
         };
     }
@@ -98,10 +91,7 @@ public class StockApiService {
                 } else if (response.statusCode() == 404) {
                     return Optional.empty();
                 }
-                if (response.statusCode() == HttpURLConnection.HTTP_UNAUTHORIZED) {
-                    throw new UnauthorizedException("Token expired or invalid");
-                }
-                throw new RuntimeException("Failed to fetch stock: " + response.statusCode() + response.body());
+                throw Helper.getRelatedException(response);
             }
         };
     }

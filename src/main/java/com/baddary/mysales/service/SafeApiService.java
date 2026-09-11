@@ -7,7 +7,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
-import com.baddary.mysales.exception.UnauthorizedException;
+import com.baddary.mysales.helper.Helper;
 import com.baddary.mysales.util.TokenStore;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -46,10 +46,7 @@ public class SafeApiService {
                 if (response.statusCode() == HttpURLConnection.HTTP_OK) {
                     return objectMapper.readValue(response.body(), BigDecimal.class);
                 }
-                if (response.statusCode() == HttpURLConnection.HTTP_UNAUTHORIZED) {
-                    throw new UnauthorizedException("Token expired or invalid");
-                }
-                throw new RuntimeException("Data request failed: " + response.statusCode() + response.body());
+                throw Helper.getRelatedException(response);
 
             }
 
