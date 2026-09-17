@@ -19,6 +19,8 @@ public class OrderDTO {
     private final Set<OrderProductDTO> orderProductDTOSet = new HashSet<>();
     private String userName;
     private String customerName;
+    private Long originalOrderId; 
+
 
     public Long getId() {
         return id;
@@ -109,4 +111,13 @@ public class OrderDTO {
     public void setCustomerName(String customerName) {
         this.customerName = customerName;
     }
+
+    public Long getOriginalOrderId() {
+        return originalOrderId;
+    }
+
+    public void setOriginalOrderId(Long originalOrderId) {
+        this.originalOrderId = originalOrderId;
+    }
+    
 }

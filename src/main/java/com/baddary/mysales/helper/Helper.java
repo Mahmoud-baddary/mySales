@@ -8,6 +8,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.TextArea;
+import javafx.scene.control.TextFormatter;
 import javafx.scene.control.TextInputDialog;
 import javafx.stage.Stage;
 
@@ -175,6 +176,17 @@ public class Helper {
                 return new RuntimeException("HTTP " + response.statusCode() + response.body());
 
         }
+    }
+
+    public static TextFormatter<String> onlyNumbersFormatter(){
+        // formatter to prevent anything other than numbers
+        TextFormatter<String> formatter = new TextFormatter<>(change -> {
+            if (change.getControlNewText().matches("[\\d\\s\\-()]*")) {
+                return change;
+            }
+            return null; // Reject the change
+        });
+        return formatter;
     }
 
 }

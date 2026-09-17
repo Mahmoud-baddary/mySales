@@ -3,6 +3,7 @@ package com.baddary.mysales.controller;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.TextField;
+import javafx.scene.control.TextFormatter;
 import javafx.stage.Stage;
 import javafx.scene.control.DatePicker;
 import javafx.scene.Parent;
@@ -15,6 +16,7 @@ import java.util.List;
 
 import com.baddary.mysales.MainApplication;
 import com.baddary.mysales.dto.OrderDTO;
+import com.baddary.mysales.dto.OrderSearchDTO;
 import com.baddary.mysales.enums.OrderType;
 import com.baddary.mysales.helper.Helper;
 import com.baddary.mysales.mapper.OrderMapper;
@@ -32,11 +34,13 @@ import javafx.scene.control.ComboBox;
 public class OrderSearchController {
 
     @FXML
-    private TextField tfCustomerName;
+    private TextField tfCustomerId;
     @FXML
-    private TextField tfProductName;
+    private TextField tfOrderId;
     @FXML
-    private TextField tfUserName;
+    private TextField tfProductBarcode;
+    @FXML
+    private TextField tfUserId;
     @FXML
     private DatePicker dpFromDate;
     @FXML
@@ -107,6 +111,13 @@ public class OrderSearchController {
 
         // Set default combo box selections
         cbOrderType.getSelectionModel().select("All");
+
+        // tf order id accept numbers only
+        // formatter to prevent anything other than numbers
+        tfOrderId.setTextFormatter(Helper.onlyNumbersFormatter());
+        tfCustomerId.setTextFormatter(Helper.onlyNumbersFormatter());
+        tfUserId.setTextFormatter(Helper.onlyNumbersFormatter());
+
     }
 
     
@@ -127,11 +138,13 @@ public class OrderSearchController {
 
     @FXML
     private void handleSearch(ActionEvent event) {
-        String customerName = tfCustomerName.getText().isBlank() ? null : tfCustomerName.getText();
-        String productName = tfProductName.getText().isBlank() ? null : tfProductName.getText();
-        String userName = tfUserName.getText().isBlank() ? null : tfUserName.getText();
+        Long customerId = tfCustomerId.getText().isBlank() ? null : Long.parseLong(tfCustomerId.getText());
+        String productBarcode = tfProductBarcode.getText().isBlank() ? null : tfProductBarcode.getText();
+        Long userId = tfUserId.getText().isBlank() ? null : Long.parseLong(tfUserId.getText());
         LocalDate fromDate = dpFromDate.getValue();
         LocalDate toDate = dpToDate.getValue();
+        Long orderId = tfOrderId.getText().isBlank() ? null : Long.parseLong(tfOrderId.getText());
+
 
         String orderTypeStr = cbOrderType.getValue();
         OrderType orderType = null;
@@ -139,9 +152,17 @@ public class OrderSearchController {
             orderType = OrderType.valueOf(orderTypeStr);
         }
 
+        OrderSearchDTO dto = new OrderSearchDTO();
+        dto.setCustomerId(customerId);
+        dto.setOrderId(orderId);
+        dto.setProductBarcode(productBarcode);
+        dto.setUserId(userId);
+        dto.setFromDate(fromDate);
+        dto.setToDate(toDate);
+        dto.setOrderType(orderType);
 
-        Task<List<OrderDTO>> searchTask = orderApiService.searchOrdersAsync(
-                customerName, productName, userName, fromDate, toDate, orderType);
+
+        Task<List<OrderDTO>> searchTask = orderApiService.searchOrdersAsync(dto);
         Helper.startTask(searchTask, e -> {
             orderRows.clear();
             List<OrderDTO> dtos = searchTask.getValue();
@@ -153,9 +174,9 @@ public class OrderSearchController {
 
     @FXML
     private void handleReset(ActionEvent event) {
-        tfCustomerName.clear();
-        tfProductName.clear();
-        tfUserName.clear();
+        tfCustomerId.clear();
+        tfProductBarcode.clear();
+        tfUserId.clear();
         dpFromDate.setValue(null);
         dpToDate.setValue(null);
         cbOrderType.getSelectionModel().select("All");

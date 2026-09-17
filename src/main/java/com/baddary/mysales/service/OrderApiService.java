@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Optional;
 
 import com.baddary.mysales.dto.OrderDTO;
+import com.baddary.mysales.dto.OrderSearchDTO;
 import com.baddary.mysales.enums.OrderType;
 import com.baddary.mysales.helper.Helper;
 import com.baddary.mysales.util.TokenStore;
@@ -58,53 +59,18 @@ public class OrderApiService {
         };
     }
 
-    public Task<List<OrderDTO>> searchOrdersAsync(String customerName, String productName,
-            String userName, LocalDate fromDate,
-            LocalDate toDate, OrderType orderType) {
+    public Task<List<OrderDTO>> searchOrdersAsync(OrderSearchDTO dto) {
         return new Task<>() {
             @Override
             protected List<OrderDTO> call() throws Exception {
                 // Build URL with optional parameters
-                StringBuilder urlBuilder = new StringBuilder(BASE_URL + "/search?");
-                boolean first = true;
-
-                if (customerName != null && !customerName.isBlank()) {
-                    urlBuilder.append("customerName=").append(java.net.URLEncoder.encode(customerName, "UTF-8"));
-                    first = false;
-                }
-                if (productName != null && !productName.isBlank()) {
-                    if (!first)
-                        urlBuilder.append("&");
-                    urlBuilder.append("productName=").append(java.net.URLEncoder.encode(productName, "UTF-8"));
-                    first = false;
-                }
-                if (userName != null && !userName.isBlank()) {
-                    if (!first)
-                        urlBuilder.append("&");
-                    urlBuilder.append("userName=").append(java.net.URLEncoder.encode(userName, "UTF-8"));
-                    first = false;
-                }
-                if (fromDate != null) {
-                    if (!first)
-                        urlBuilder.append("&");
-                    urlBuilder.append("fromDate=").append(fromDate);
-                    first = false;
-                }
-                if (toDate != null) {
-                    if (!first)
-                        urlBuilder.append("&");
-                    urlBuilder.append("toDate=").append(toDate);
-                    first = false;
-                }
-                if (orderType != null) {
-                    if (!first)
-                        urlBuilder.append("&");
-                    urlBuilder.append("orderType=").append(orderType);
-                }
+                StringBuilder urlBuilder = new StringBuilder(BASE_URL + "/search");
+                String json = objectMapper.writeValueAsString(dto);
 
                 HttpRequest request = addAuthHeader(HttpRequest.newBuilder()
                         .uri(URI.create(urlBuilder.toString()))
-                        .GET())
+                        .header("Content-Type", "application/json")
+                        .POST(HttpRequest.BodyPublishers.ofString(json)))
                         .build();
                 System.out.println(request);
                 HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());

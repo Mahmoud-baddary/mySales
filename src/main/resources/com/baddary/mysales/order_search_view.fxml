@@ -25,15 +25,17 @@
       <Text style="-fx-font-size: 20px; -fx-font-weight: bold;" text="Sales Order Search"/>
       <!-- First row: Customer and Product -->
       <HBox spacing="20.0" alignment="CENTER_LEFT">
-        <Label style="-fx-font-weight: bold;" text="Customer:" minWidth="70"/>
-        <TextField fx:id="tfCustomerName" promptText="Enter customer name" HBox.hgrow="ALWAYS"/>
-        <Label style="-fx-font-weight: bold;" text="Product:" minWidth="70"/>
-        <TextField fx:id="tfProductName" promptText="Enter product name" HBox.hgrow="ALWAYS"/>
+        <Label style="-fx-font-weight: bold;" text="Order Id:" minWidth="70"/>
+        <TextField fx:id="tfOrderId" promptText="Enter order id" HBox.hgrow="ALWAYS"/>
+        <Label style="-fx-font-weight: bold;" text="Customer Id:" minWidth="70"/>
+        <TextField fx:id="tfCustomerId" promptText="Enter customer id" HBox.hgrow="ALWAYS"/>
+        <Label style="-fx-font-weight: bold;" text="Product Barcode:" minWidth="70"/>
+        <TextField fx:id="tfProductBarcode" promptText="Enter product barcode" HBox.hgrow="ALWAYS"/>
       </HBox>
       <!-- Second row: User and Date range -->
       <HBox spacing="20.0" alignment="CENTER_LEFT">
-        <Label style="-fx-font-weight: bold;" text="User:" minWidth="70"/>
-        <TextField fx:id="tfUserName" promptText="Enter username" HBox.hgrow="ALWAYS"/>
+        <Label style="-fx-font-weight: bold;" text="User Id:" minWidth="70"/>
+        <TextField fx:id="tfUserId" promptText="Enter user id" HBox.hgrow="ALWAYS"/>
         <Label style="-fx-font-weight: bold;" text="From Date:" minWidth="70"/>
         <DatePicker fx:id="dpFromDate" promptText="dd/mm/yyyy" HBox.hgrow="ALWAYS"/>
         <Label style="-fx-font-weight: bold;" text="To Date:" minWidth="70"/>
