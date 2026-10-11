@@ -144,10 +144,10 @@ public class CustomerApiService {
         };
     }
 
-    public Task<Optional<CustomerDTO>> findByIdAsync(long id) {
+    public Task<CustomerDTO> findByIdAsync(long id) {
         return new Task<>() {
             @Override
-            protected Optional<CustomerDTO> call() throws Exception {
+            protected CustomerDTO call() throws Exception {
                 String url = BASE_URL + "/" + id;
                 HttpRequest request = addAuthHeader(HttpRequest.newBuilder())
                         .uri(URI.create(url))
@@ -155,9 +155,7 @@ public class CustomerApiService {
                         .build();
                 HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
                 if (response.statusCode() == 200) {
-                    return Optional.of(objectMapper.readValue(response.body(), CustomerDTO.class));
-                } else if (response.statusCode() == HttpURLConnection.HTTP_NOT_FOUND) {
-                    return Optional.empty();
+                    return objectMapper.readValue(response.body(), CustomerDTO.class);
                 }
                 throw Helper.getRelatedException(response);
 
@@ -165,10 +163,10 @@ public class CustomerApiService {
         };
     }
 
-    public Task<Optional<CustomerDTO>> findByPhoneAsync(String phoneNum) {
+    public Task<CustomerDTO> findByPhoneAsync(String phoneNum) {
         return new Task<>() {
             @Override
-            protected Optional<CustomerDTO> call() throws Exception {
+            protected CustomerDTO call() throws Exception {
                 String url = BASE_URL + "/by-phone?phoneNum=" + java.net.URLEncoder.encode(phoneNum, "UTF-8");
                 HttpRequest request = addAuthHeader(HttpRequest.newBuilder())
                         .uri(URI.create(url))
@@ -178,9 +176,7 @@ public class CustomerApiService {
                 System.out.println("Response status: " + response.statusCode());
                 System.out.println("Response body: " + response.body());
                 if (response.statusCode() == 200) {
-                    return Optional.of(objectMapper.readValue(response.body(), CustomerDTO.class));
-                } else if (response.statusCode() == HttpURLConnection.HTTP_NOT_FOUND) {
-                    return Optional.empty();
+                    return objectMapper.readValue(response.body(), CustomerDTO.class);
                 }
                 throw Helper.getRelatedException(response);
 

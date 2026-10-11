@@ -1,10 +1,11 @@
 package com.baddary.mysales.row;
 
+import javafx.beans.binding.Bindings;
 import javafx.beans.property.*;
 
 import java.time.LocalDate;
 
-import com.baddary.mysales.dto.ProductDTO;
+import com.baddary.mysales.dto.ProductSummaryDTO;
 
 public class OrderProductPurchaseRow {
     private final SimpleLongProperty productId = new SimpleLongProperty(0);
@@ -19,9 +20,21 @@ public class OrderProductPurchaseRow {
     private final SimpleDoubleProperty discount = new SimpleDoubleProperty(0);
     private final SimpleDoubleProperty totalPrice = new SimpleDoubleProperty();
     private final ObjectProperty<LocalDate> expireDate = new SimpleObjectProperty<>();
-    private final ObjectProperty<ProductDTO> productDTO = new SimpleObjectProperty<>();
-    public OrderProductPurchaseRow(){
+    private final ObjectProperty<ProductSummaryDTO> productSummaryDTO = new SimpleObjectProperty<>();
+    private final SimpleDoubleProperty quantitySu = new SimpleDoubleProperty(0);
+
+    public OrderProductPurchaseRow() {
         totalPrice.bind(price.multiply(quantity).multiply(discount.divide(100).multiply(-1).add(1)));
+        quantitySu.bind(Bindings.createDoubleBinding(
+                () -> calculateQuantitySU(getProductSummaryDTO(), getUnit(), getQuantity()), unit, productSummaryDTO, quantity));
+    }
+
+    public SimpleDoubleProperty quantitySUProperty() {
+        return this.quantitySu;
+    }
+
+    public double getQuantitySU() {
+        return this.quantitySu.get();
     }
 
     public long getProductId() {
@@ -39,7 +52,6 @@ public class OrderProductPurchaseRow {
     public SimpleLongProperty orderIdProperty() {
         return orderId;
     }
-
 
     public String getBatch() {
         return batch.get();
@@ -105,22 +117,66 @@ public class OrderProductPurchaseRow {
         return expireDate;
     }
 
-    public ProductDTO getProductDTO() {
-        return productDTO.get();
+    public ProductSummaryDTO getProductSummaryDTO() {
+        return productSummaryDTO.get();
     }
 
-    public ObjectProperty<ProductDTO> productDTOProperty() {
-        return productDTO;
+    public ObjectProperty<ProductSummaryDTO> productDTOProperty() {
+        return productSummaryDTO;
     }
 
-    public void setProductId(long productId) { this.productId.set(productId); }
-    public void setOrderId(long orderId) { this.orderId.set(orderId); }
-    public void setBatch(String batch) { this.batch.set(batch); }
-    public void setUnit(String unit) { this.unit.set(unit); }
-    public void setNote(String note) { this.note.set(note); }
-    public void setQuantity(double quantity) { this.quantity.set(quantity); }
-    public void setPrice(double price) { this.price.set(price); }
-    public void setDiscount(double discount) { this.discount.set(discount); }
-    public void setExpireDate(LocalDate expireDate) { this.expireDate.set(expireDate); }
-    public void setProductDTO(ProductDTO productDTO) { this.productDTO.set(productDTO); }
+    private double calculateQuantitySU(ProductSummaryDTO dto, String unit, double quantity) {
+        double quantitySU = 0;
+        if (dto == null) {
+            return quantitySU;
+        }
+        if (unit.equalsIgnoreCase(dto.getGreatestUnit())) {
+            quantitySU = quantity * dto.getSmallestUnitAmount();
+        } else if (unit.equalsIgnoreCase(dto.getMediumUnit())) {
+            quantitySU = quantity * dto.getSmallestUnitAmount() / dto.getMediumUnitAmount();
+        } else {
+            quantitySU = quantity;
+        }
+        return quantitySU;
+    }
+
+    public void setProductId(long productId) {
+        this.productId.set(productId);
+    }
+
+    public void setOrderId(long orderId) {
+        this.orderId.set(orderId);
+    }
+
+    public void setBatch(String batch) {
+        this.batch.set(batch);
+    }
+
+    public void setUnit(String unit) {
+        this.unit.set(unit);
+    }
+
+    public void setNote(String note) {
+        this.note.set(note);
+    }
+
+    public void setQuantity(double quantity) {
+        this.quantity.set(quantity);
+    }
+
+    public void setPrice(double price) {
+        this.price.set(price);
+    }
+
+    public void setDiscount(double discount) {
+        this.discount.set(discount);
+    }
+
+    public void setExpireDate(LocalDate expireDate) {
+        this.expireDate.set(expireDate);
+    }
+
+    public void setProductSummaryDTO(ProductSummaryDTO productSummaryDTO) {
+        this.productSummaryDTO.set(productSummaryDTO);
+    }
 }

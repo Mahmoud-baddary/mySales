@@ -3,7 +3,6 @@ package com.baddary.mysales.controller;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.TextField;
-import javafx.scene.control.TextFormatter;
 import javafx.stage.Stage;
 import javafx.scene.control.DatePicker;
 import javafx.scene.Parent;

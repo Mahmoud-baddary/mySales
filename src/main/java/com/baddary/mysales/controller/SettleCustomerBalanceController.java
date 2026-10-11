@@ -10,7 +10,6 @@ import javafx.scene.control.ComboBox;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 
 import com.baddary.mysales.dto.CashDTO;
 import com.baddary.mysales.dto.CustomerDTO;
@@ -226,10 +225,10 @@ public class SettleCustomerBalanceController {
                     Helper.startTask(settleCustomerBalanceAsync, e -> {
                         Helper.createAlertInfo("Successful Operation", "Customer balance has been settled successfully")
                                 .show();
-                        Task<Optional<CustomerDTO>> byIdAsync = customerApiService.findByIdAsync(this.customer.getId());
+                        Task<CustomerDTO> byIdAsync = customerApiService.findByIdAsync(this.customer.getId());
                         Helper.startTask(byIdAsync, ev->{
-                            Optional<CustomerDTO> dto = byIdAsync.getValue();
-                            this.customer = CustomerMapper.toBalanceRow(dto.get());
+                            CustomerDTO dto = byIdAsync.getValue();
+                            this.customer = CustomerMapper.toBalanceRow(dto);
                             tfBalance.setText(String.valueOf(this.customer.getBalance()));
                             tfAmount.setText(String.valueOf(this.customer.getBalance()));
                         }, null, stage);

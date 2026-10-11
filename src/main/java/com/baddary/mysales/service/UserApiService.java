@@ -10,7 +10,6 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.util.Optional;
 
 public class UserApiService {
     private static final String BASE_URL = "http://localhost:8080/users";
@@ -70,18 +69,16 @@ public class UserApiService {
     }
 
     // Find user by name (case-insensitive)
-    public Task<Optional<UserDTO>> findByNameAsync(String name) {
+    public Task<UserDTO> findByNameAsync(String name) {
         return new Task<>() {
             @Override
-            protected Optional<UserDTO> call() throws Exception {
+            protected UserDTO call() throws Exception {
                 String url = BASE_URL + "/search?name=" + java.net.URLEncoder.encode(name, "UTF-8");
                 HttpRequest request = addAuthHeader(HttpRequest.newBuilder())
                         .uri(URI.create(url)).GET().build();
                 HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
                 if (response.statusCode() == 200) {
-                    return Optional.of(objectMapper.readValue(response.body(), UserDTO.class));
-                } else if (response.statusCode() == 404) {
-                    return Optional.empty();
+                    return objectMapper.readValue(response.body(), UserDTO.class);
                 }
                 throw Helper.getRelatedException(response);
             }

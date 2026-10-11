@@ -13,7 +13,6 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 
 public class StockApiService {
     private static final String BASE_URL = "http://localhost:8080/stocks";
@@ -76,10 +75,10 @@ public class StockApiService {
     }
 
     // GET /stocks/by-product-expire?productId=...&expire=...
-    public Task<Optional<StockDTO>> findStockByProductAndExpireAsync(long productId, LocalDate expire) {
+    public Task<StockDTO> findStockByProductAndExpireAsync(long productId, LocalDate expire) {
         return new Task<>() {
             @Override
-            protected Optional<StockDTO> call() throws Exception {
+            protected StockDTO call() throws Exception {
                 String url = BASE_URL + "/by-product-expire?productId=" + productId + "&expire=" + expire.toString();
                 HttpRequest request = addAuthHeader(HttpRequest.newBuilder()
                         .uri(URI.create(url))
@@ -87,9 +86,7 @@ public class StockApiService {
                         .build();
                 HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
                 if (response.statusCode() == 200) {
-                    return Optional.of(objectMapper.readValue(response.body(), StockDTO.class));
-                } else if (response.statusCode() == 404) {
-                    return Optional.empty();
+                    return objectMapper.readValue(response.body(), StockDTO.class);
                 }
                 throw Helper.getRelatedException(response);
             }

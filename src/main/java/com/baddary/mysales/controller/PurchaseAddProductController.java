@@ -24,7 +24,6 @@ import javafx.util.Duration;
 import javafx.util.converter.NumberStringConverter;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 
 public class PurchaseAddProductController {
     @FXML
@@ -156,17 +155,17 @@ public class PurchaseAddProductController {
         listSearchResult.getSelectionModel().selectedItemProperty().addListener(
                 (observable, oldValue, newValue) -> {
                     if (newValue != null) {
-                        Task<Optional<ProductDTO>> byIdAsync = productApiService.findByIdAsync(newValue.getId());
+                        Task<ProductDTO> byIdAsync = productApiService.findByIdAsync(newValue.getId());
                         Helper.startTask(byIdAsync, ev -> {
-                            byIdAsync.getValue().ifPresent(productDTO -> {
+                            ProductDTO productDTO = byIdAsync.getValue();;
                                 units.clear();
                                 units.add(productDTO.getGreatestUnit());
                                 units.add(productDTO.getMediumUnit());
                                 units.add(productDTO.getSmallestUnit());
                                 cbUnit.getSelectionModel().selectFirst();
-                                opdto.setProductDTO(productDTO);
+                                opdto.setProductSummaryDTO(ProductMapper.toSummaryDTO(productDTO));
                                 opdto.setProductId(productDTO.getId());
-                            });
+                            
                         }, null, this.stage);
 
                     }
@@ -191,7 +190,7 @@ public class PurchaseAddProductController {
             OrderProductPurchaseRow copy = new OrderProductPurchaseRow();
             copy.setExpireDate(opdto.getExpireDate());
             copy.setBatch(opdto.getBatch());
-            copy.setProductDTO(opdto.getProductDTO());
+            copy.setProductSummaryDTO(opdto.getProductSummaryDTO());
             copy.setProductId(opdto.getProductId());
             copy.setNote(opdto.getNote());
             copy.setPrice(opdto.getPrice());

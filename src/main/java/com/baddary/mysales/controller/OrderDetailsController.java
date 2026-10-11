@@ -1,20 +1,26 @@
 package com.baddary.mysales.controller;
 
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.stage.Stage;
 
+import java.io.IOException;
 import java.time.LocalDate;
-import java.util.Optional;
 
+import com.baddary.mysales.MainApplication;
 import com.baddary.mysales.dto.OrderDTO;
+import com.baddary.mysales.enums.OrderType;
 import com.baddary.mysales.helper.Helper;
 import com.baddary.mysales.mapper.OrderProductMapper;
-import com.baddary.mysales.row.OrderProductRow;
+import com.baddary.mysales.row.OrderProductSearchRow;
 import com.baddary.mysales.service.OrderApiService;
 
+import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
@@ -49,43 +55,44 @@ public class OrderDetailsController {
     private Label lblTotalPrice;
 
     @FXML
-    private TableView<OrderProductRow> tblOrderItems;
+    private TableView<OrderProductSearchRow> tblOrderItems;
 
     @FXML
-    private TableColumn<OrderProductRow, Number> colProductId;
+    private TableColumn<OrderProductSearchRow, Number> colProductId;
 
     @FXML
-    private TableColumn<OrderProductRow, String> colProductName;
+    private TableColumn<OrderProductSearchRow, String> colProductName;
 
     @FXML
-    private TableColumn<OrderProductRow, String> colUnit;
+    private TableColumn<OrderProductSearchRow, String> colUnit;
 
     @FXML
-    private TableColumn<OrderProductRow, Number> colQuantity;
+    private TableColumn<OrderProductSearchRow, Number> colQuantity;
 
     @FXML
-    private TableColumn<OrderProductRow, Number> colPrice;
+    private TableColumn<OrderProductSearchRow, Number> colPrice;
 
     @FXML
-    private TableColumn<OrderProductRow, Number> colDiscount;
+    private TableColumn<OrderProductSearchRow, Number> colDiscount;
 
     @FXML
-    private TableColumn<OrderProductRow, Number> colTotal;
+    private TableColumn<OrderProductSearchRow, Number> colTotal;
 
     @FXML
-    private TableColumn<OrderProductRow, LocalDate> colExpireDate;
+    private TableColumn<OrderProductSearchRow, LocalDate> colExpireDate;
 
     @FXML
-    private TableColumn<OrderProductRow, String> colBatch;
+    private TableColumn<OrderProductSearchRow, String> colBatch;
 
     @FXML
-    private TableColumn<OrderProductRow, String> colNotes;
+    private TableColumn<OrderProductSearchRow, String> colNotes;
 
     private final OrderApiService orderApiService = new OrderApiService();
-    private final ObservableList<OrderProductRow> orderItemsList = FXCollections.observableArrayList();
+    private final ObservableList<OrderProductSearchRow> orderItemsList = FXCollections.observableArrayList();
 
-    private long orderId;
+    private Long orderId;
     private Stage stage;
+    private OrderType orderType;
 
     public void intialize(Stage stage, long orderId) {
         colProductId.setCellValueFactory(cellData -> cellData.getValue().productIdProperty());
@@ -94,7 +101,7 @@ public class OrderDetailsController {
         colPrice.setCellValueFactory(cellData -> cellData.getValue().priceProperty());
         colDiscount.setCellValueFactory(cellData -> cellData.getValue().discountProperty());
         colTotal.setCellValueFactory(cellData -> cellData.getValue().totalPriceProperty()); // need totalProperty in
-        colProductName.setCellValueFactory(cellData -> cellData.getValue().productNameProperty()); // OrderProductRow
+        colProductName.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getProductSummaryDTO().getName())); // OrderProductRow
         colExpireDate.setCellValueFactory(cellData -> cellData.getValue().expireDateProperty());
         colBatch.setCellValueFactory(cellData -> cellData.getValue().batchProperty());
         colNotes.setCellValueFactory(cellData -> cellData.getValue().noteProperty()); // noteProperty in OrderProductRow
@@ -102,29 +109,52 @@ public class OrderDetailsController {
         tblOrderItems.setItems(orderItemsList);
         this.orderId = orderId;
         this.stage = stage;
-        Task<Optional<OrderDTO>> byIdAsync = orderApiService.findByIdAsync(this.orderId);
+        Task<OrderDTO> byIdAsync = orderApiService.findByIdAsync(this.orderId);
         Helper.startTask(byIdAsync, e -> {
-            byIdAsync.getValue().ifPresent(dto -> {
-                lblCustomer.setText(dto.getCustomerName());
-                lblDate.setText(dto.getDate().toString());
-                lblDiscount.setText(String.valueOf(dto.getDiscount()));
-                lblOrderId.setText(String.valueOf(dto.getId()));
-                lblPaidMoney.setText(String.valueOf(dto.getPaidMoney()));
-                lblOrderType.setText(dto.getOrderType().name());
-                lblTotalPrice.setText(String.valueOf(dto.calculateTotalPrice()));
-                lblUser.setText(dto.getUserName());
-                lblTime.setText(dto.getTime().toString());
-                orderItemsList.clear();
-                dto.getOrderProductDTOSet().forEach(op -> {
-                    orderItemsList.add(OrderProductMapper.toRow(op));
-                });
+            OrderDTO dto = byIdAsync.getValue();
+
+            lblCustomer.setText(dto.getCustomerName());
+            lblDate.setText(dto.getDate().toString());
+            lblDiscount.setText(String.valueOf(dto.getDiscount()));
+            lblOrderId.setText(String.valueOf(dto.getId()));
+            lblPaidMoney.setText(String.valueOf(dto.getPaidMoney()));
+            lblOrderType.setText(dto.getOrderType().name());
+            this.orderType = dto.getOrderType();
+            lblTotalPrice.setText(String.valueOf(dto.calculateTotalPrice()));
+            lblUser.setText(dto.getUserName());
+            lblTime.setText(dto.getTime().toString());
+            orderItemsList.clear();
+            dto.getOrderProductDTOSet().forEach(op -> {
+                orderItemsList.add(OrderProductMapper.toRow(op));
+
             });
         }, null, this.stage);
     }
 
-    
-
     @FXML
     private void handleClose(ActionEvent event) {
+        this.stage.close();
     }
+
+    @FXML
+    private void handleReturn(ActionEvent event) throws IOException {
+        if (this.orderType == OrderType.SALE) {
+            FXMLLoader loader = new FXMLLoader(MainApplication.class.getResource("sales_order_view.fxml"));
+            Parent root = loader.load();
+            SalesOrderController controller = loader.getController();
+            controller.initialize(this.stage);
+            this.stage.setTitle("Return Buy Order");
+            this.stage.setScene(new Scene(root));
+            this.stage.sizeToScene();
+        }else{
+            FXMLLoader loader = new FXMLLoader(MainApplication.class.getResource("purchase_order_view.fxml"));
+            Parent root = loader.load();
+            PurchaseOrderController controller = loader.getController();
+            controller.initialize(this.stage);
+            this.stage.setTitle("Return Buy Order");
+            this.stage.setScene(new Scene(root));
+            this.stage.sizeToScene();
+        }
+    }
+
 }

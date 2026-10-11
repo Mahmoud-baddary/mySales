@@ -16,7 +16,6 @@ import javafx.util.Duration;
 import javafx.util.converter.NumberStringConverter;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 
 import com.baddary.mysales.dto.ProductDTO;
 import com.baddary.mysales.dto.StockDTO;
@@ -57,12 +56,9 @@ public class SalesAddProductController {
     private final ProductApiService productApiService = new ProductApiService();
     private final StockApiService stockApiService = new StockApiService();
     private Stage stage;
-   
+
     @FXML
     private Label lblStatus;
-
-    
-   
 
     public void initialize(Stage stage, ObservableList<OrderProductSaleRow> orderProductsObs) {
         this.stage = stage;
@@ -127,41 +123,41 @@ public class SalesAddProductController {
         listSearchResult.getSelectionModel().selectedItemProperty().addListener(
                 (observable, oldValue, newValue) -> {
                     if (newValue != null) {
-                        Task<Optional<ProductDTO>> byIdAsync = productApiService.findByIdAsync(newValue.getId());
+                        Task<ProductDTO> byIdAsync = productApiService.findByIdAsync(newValue.getId());
                         Helper.startTask(byIdAsync, e -> {
-                            Optional<ProductDTO> optionalDto = byIdAsync.getValue();
-                            optionalDto.ifPresent(dto -> {
-                                units.clear();
-                                units.add(dto.getGreatestUnit());
-                                units.add(dto.getMediumUnit());
-                                units.add(dto.getSmallestUnit());
-                                cbUnit.getSelectionModel().selectFirst();
-                                expires.clear();
-                                Task<List<StockDTO>> stocksAsync = stockApiService.findStocksAsync(dto.getId());
-                                Helper.startTask(stocksAsync, ev -> {
-                                    List<StockDTO> stockDTOs = stocksAsync.getValue();
-                                    if (!stockDTOs.isEmpty()) {
-                                        stockDTOs.forEach(stock -> {
-                                            expires.add(stock.getExpire());
-                                        });
-                                        cbExpireDate.getSelectionModel().selectFirst();
-                                        saleRow.setProductId(dto.getId());
-                                        saleRow.setProductDTO(dto);
-                                        saleRow.setUnit(dto.getGreatestUnit());
-                                        if (saleRow.getStock() > 1) {
-                                            saleRow.setQuantity(1);
-                                        } else {
-                                            saleRow.setQuantity(saleRow.getStock());
-                                        }
-                                    } else {
-                                        Helper.createAlertInfo("Empty stock", "There is no stock of this product")
-                                                .show();
-                                        tfProductName.requestFocus();
-                                        clear();
-                                    }
+                            ProductDTO dto = byIdAsync.getValue();
 
-                                }, null, this.stage);
-                            });
+                            units.clear();
+                            units.add(dto.getGreatestUnit());
+                            units.add(dto.getMediumUnit());
+                            units.add(dto.getSmallestUnit());
+                            cbUnit.getSelectionModel().selectFirst();
+                            expires.clear();
+                            Task<List<StockDTO>> stocksAsync = stockApiService.findStocksAsync(dto.getId());
+                            Helper.startTask(stocksAsync, ev -> {
+                                List<StockDTO> stockDTOs = stocksAsync.getValue();
+                                if (!stockDTOs.isEmpty()) {
+                                    stockDTOs.forEach(stock -> {
+                                        expires.add(stock.getExpire());
+                                    });
+                                    cbExpireDate.getSelectionModel().selectFirst();
+                                    saleRow.setProductId(dto.getId());
+                                    saleRow.setProductSummaryDTO(ProductMapper.toSummaryDTO(dto));
+                                    saleRow.setUnit(dto.getGreatestUnit());
+                                    if (saleRow.getStock() > 1) {
+                                        saleRow.setQuantity(1);
+                                    } else {
+                                        saleRow.setQuantity(saleRow.getStock());
+                                    }
+                                } else {
+                                    Helper.createAlertInfo("Empty stock", "There is no stock of this product")
+                                            .show();
+                                    tfProductName.requestFocus();
+                                    clear();
+                                }
+
+                            }, null, this.stage);
+
                         }, null, this.stage);
 
                     }
@@ -172,26 +168,24 @@ public class SalesAddProductController {
             ProductRow productRow = listSearchResult.getSelectionModel().getSelectedItem();
             if (productRow == null)
                 return;
-            Task<Optional<ProductDTO>> byIdAsync = productApiService.findByIdAsync(productRow.getId());
+            Task<ProductDTO> byIdAsync = productApiService.findByIdAsync(productRow.getId());
             Helper.startTask(byIdAsync, e -> {
-                Optional<ProductDTO> optionalDTO = byIdAsync.getValue();
-                optionalDTO.ifPresent(dto -> {
-                    Task<Optional<StockDTO>> stockByProductAndExpireAsync = stockApiService
-                            .findStockByProductAndExpireAsync(dto.getId(), newValue);
-                    Helper.startTask(stockByProductAndExpireAsync, ev -> {
-                        Optional<StockDTO> optionalStockDTO = stockByProductAndExpireAsync.getValue();
-                        optionalStockDTO.ifPresent(stock -> {
-                            saleRow.setBatch(stock.getBatch());
-                            saleRow.setStockSU(stock.getQuantitySU());
-                            saleRow.setPriceSU(stock.getPriceSU());
-                            // quantity must not be bigger thant stock
-                            if (saleRow.getQuantity() > saleRow.getStock()) {
-                                saleRow.setQuantity(saleRow.getStock());
-                            }
-                        });
-                    }, null, this.stage);
+                ProductDTO dto = byIdAsync.getValue();
 
-                });
+                Task<StockDTO> stockByProductAndExpireAsync = stockApiService
+                        .findStockByProductAndExpireAsync(dto.getId(), newValue);
+                Helper.startTask(stockByProductAndExpireAsync, ev -> {
+                    StockDTO stock = stockByProductAndExpireAsync.getValue();
+                    saleRow.setBatch(stock.getBatch());
+                    saleRow.setStockSU(stock.getQuantitySU());
+                    saleRow.setPriceSU(stock.getPriceSU());
+                    // quantity must not be bigger thant stock
+                    if (saleRow.getQuantity() > saleRow.getStock()) {
+                        saleRow.setQuantity(saleRow.getStock());
+                    }
+
+                }, null, this.stage);
+
             }, null, this.stage);
 
         });
@@ -222,14 +216,14 @@ public class SalesAddProductController {
             copy.setUnit(saleRow.getUnit());
             copy.setBatch(saleRow.getBatch());
             copy.setProductId(saleRow.getProductId());
-            copy.setProductDTO(saleRow.getProductDTO());
+            copy.setProductSummaryDTO(saleRow.getProductSummaryDTO());
             copy.setQuantity(saleRow.getQuantity());
             copy.setStockSU(saleRow.getStockSU());
             copy.setPriceSU(saleRow.getPriceSU());
             copy.setExpireDate(saleRow.getExpireDate());
             orderProductsObs.add(copy);
             clear();
-        }else{
+        } else {
             lblStatus.setText("fill all data required");
         }
 
@@ -244,7 +238,7 @@ public class SalesAddProductController {
     private void clear() {
         listSearchResult.getItems().clear();
         saleRow.setBatch("");
-        saleRow.setProductDTO(null);
+        saleRow.setProductSummaryDTO(null);
         saleRow.setProductId(0);
         saleRow.setUnit("");
         saleRow.setExpireDate(null);

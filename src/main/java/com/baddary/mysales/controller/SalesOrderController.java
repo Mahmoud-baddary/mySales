@@ -93,7 +93,11 @@ public class SalesOrderController {
     @FXML
     private TextField tfEmail;
     @FXML
+    private Button btnAddProduct;
+    @FXML
     private TextField tfCustomerId;
+    @FXML
+    private TextField tfOriginalOrderId;
 
     private final ObservableList<String> units = FXCollections.observableArrayList();
     private final ObservableList<LocalDate> expires = FXCollections.observableArrayList();
@@ -110,58 +114,52 @@ public class SalesOrderController {
     private final CashApiService cashApiService = new CashApiService();
     private final SafeApiService safeApiService = new SafeApiService();
     private Stage stage;
+    private OrderType orderType = OrderType.SALE;
+    // private Long originalOrderId;
 
     public void initialize(Stage stage) {
         this.stage = stage;
+        // this.originalOrderId = originalOrderId;
+
         prepareTableCells();
         setupFocusSeries();
         tblProducts.setItems(saleRows);
 
-        // formatter to prevent anything other than numbers
-        TextFormatter<String> phoneNumFormatter = new TextFormatter<>(change -> {
-            if (change.getControlNewText().matches("[\\d\\s\\-()]*")) {
-                return change;
-            }
-            return null; // Reject the change
-        });
-        tfPhoneNumber.setTextFormatter(phoneNumFormatter);
-        // fill fields when typing phone num
-        tfPhoneNumber.setOnAction(event -> {
-            Task<Optional<CustomerDTO>> byPhoneAsync = customerApiService
-                    .findByPhoneAsync(tfPhoneNumber.getText().strip());
-            Helper.startTask(byPhoneAsync, e -> {
-                Optional<CustomerDTO> optionalCustomer = byPhoneAsync.getValue();
-                optionalCustomer.ifPresentOrElse(dto -> {
-                    tfPhoneNumber.getStyleClass().remove("text-field-error");
-                    tfEmail.setText(dto.getEmail());
-                    tfCustomerId.setText(String.valueOf(dto.getId()));
-                    tfCustomerName.setText(dto.getName());
-                    taAddress.setText(dto.getAddress());
-                    tfDiscount.requestFocus();
-                }, () -> {
-                    tfPhoneNumber.getStyleClass().add("text-field-error");
-                    java.awt.Toolkit.getDefaultToolkit().beep();
-                });
-            }, null, stage);
+        // when return order use original order
+        // if (originalOrderId != null) {
+        // useOriginalOrder();
 
-        });
+        // }
 
-        // make discount get only numbers
-        TextFormatter<Number> discountFormatter = new TextFormatter<>(
-                new NumberStringConverter(), 0.0, change -> {
-                    String text = change.getControlNewText();
-                    if (text.isEmpty())
-                        return change;
-                    try {
-                        Double.parseDouble(text);
-                        return change;
-                    } catch (Exception e) {
-                        return null;
-                    }
-                });
-        tfDiscount.setTextFormatter(discountFormatter);
+        tfPhoneNumber.setTextFormatter(Helper.onlyNumbersFormatter());
 
-        // make sure that no duplicate
+        tfDiscount.setTextFormatter(Helper.onlyDoubleFormatter());
+
+        onTypingPhoneNumber();
+
+        noDuplicateInProducts();
+
+        setupBindings();
+
+    }
+
+    private void setupBindings() {
+        DoubleBinding totalPriceBinding = Bindings.createDoubleBinding(
+                () -> saleRows.stream().mapToDouble(OrderProductSaleRow::getTotalPrice).sum(), saleRows);
+
+        lblTotalPrice.textProperty().bind(totalPriceBinding.asString("%.2f"));
+
+        DoubleProperty discountProperty = new SimpleDoubleProperty(0);
+        tfDiscount.textProperty().bindBidirectional(discountProperty, new NumberStringConverter());
+
+        DoubleBinding finalPriceBinding = totalPriceBinding.multiply(
+                discountProperty.divide(100).negate().add(1));
+
+        lblFinalPrice.textProperty().bind(
+                finalPriceBinding.asString("%.2f"));
+    }
+
+    private void noDuplicateInProducts() {
         saleRows.addListener(new ListChangeListener<OrderProductSaleRow>() {
             @Override
             public void onChanged(ListChangeListener.Change<? extends OrderProductSaleRow> c) {
@@ -198,21 +196,55 @@ public class SalesOrderController {
                 }
             }
         });
-        //
-        DoubleBinding totalPriceBinding = Bindings.createDoubleBinding(
-                () -> saleRows.stream().mapToDouble(OrderProductSaleRow::getTotalPrice).sum(), saleRows);
-
-        lblTotalPrice.textProperty().bind(totalPriceBinding.asString("%.2f"));
-
-        DoubleProperty discountProperty = new SimpleDoubleProperty(0);
-        tfDiscount.textProperty().bindBidirectional(discountProperty, new NumberStringConverter());
-
-        DoubleBinding finalPriceBinding = totalPriceBinding.multiply(
-                discountProperty.divide(100).negate().add(1));
-
-        lblFinalPrice.textProperty().bind(
-                finalPriceBinding.asString("%.2f"));
     }
+
+    private void onTypingPhoneNumber() {
+        tfPhoneNumber.setOnAction(event -> {
+            Task<CustomerDTO> byPhoneAsync = customerApiService
+                    .findByPhoneAsync(tfPhoneNumber.getText().strip());
+            Helper.startTask(byPhoneAsync, e -> {
+                CustomerDTO dto = byPhoneAsync.getValue();
+
+                tfPhoneNumber.getStyleClass().remove("text-field-error");
+                tfEmail.setText(dto.getEmail());
+                tfCustomerId.setText(String.valueOf(dto.getId()));
+                tfCustomerName.setText(dto.getName());
+                taAddress.setText(dto.getAddress());
+                tfDiscount.requestFocus();
+            }, null, this.stage);
+
+        });
+    }
+
+    // private void useOriginalOrder() {
+    // // stop eiditing
+    // tfPhoneNumber.setEditable(false);
+    // btnAddProduct.disableProperty().set(false);
+    // tfDiscount.setEditable(false);
+    // orderType = OrderType.SALE_RETURN;
+    // Task<OrderDTO> byIdAsync =
+    // orderApiService.findByIdAsync(this.originalOrderId);
+    // Helper.startTask(byIdAsync, e -> {
+    // OrderDTO originalDTO = byIdAsync.getValue();
+    // tfDiscount.setText(String.valueOf(originalDTO.getDiscount()));
+    // tfOriginalOrderId.setText(String.valueOf(originalOrderId));
+    // saleRows.addAll(originalDTO.getOrderProductDTOSet()
+    // .stream().map(OrderProductMapper::toSalesRow).toList());
+
+    // // add data of customer
+    // tfCustomerId.setText(String.valueOf(originalDTO.getCustomerId()));
+    // // get customer data
+    // Task<CustomerDTO> byCustomerIdAsync =
+    // customerApiService.findByIdAsync(originalDTO.getCustomerId());
+    // Helper.startTask(byCustomerIdAsync, ev -> {
+    // CustomerDTO dto = byCustomerIdAsync.getValue();
+    // tfCustomerName.setText(dto.getName());
+    // tfPhoneNumber.setText(dto.getPhoneDTOSet().stream().map(p ->
+    // p.getPhoneNum()).findAny().orElse(""));
+    // }, null, stage);
+    // }, null, stage);
+
+    // }
 
     public void handleAddProduct(ActionEvent event) throws IOException {
         FXMLLoader loader = new FXMLLoader(MainApplication.class.getResource("sales_add_product_view.fxml"));
@@ -253,7 +285,7 @@ public class SalesOrderController {
         OrderDTO orderDTO = new OrderDTO();
 
         TextInputDialog dialog = Helper.createTextInputDialog(lblFinalPrice.getText(),
-                "Payment", "Enter the amount paid by the customer:",
+                "Payment", "Enter the amount paid by customer",
                 "Paid Money:");
 
         // Show the dialog and wait for user response
@@ -282,14 +314,15 @@ public class SalesOrderController {
                 orderDTO.setTime(time);
                 orderDTO.setDiscount(discount);
                 orderDTO.setDate(date);
-                orderDTO.setOrderType(OrderType.SALE);
+                orderDTO.setOrderType(orderType);
+                // orderDTO.setOriginalOrderId(customerId);
                 List<OrderProductDTO> orderProductDTOS = saleRows.stream().map(OrderProductMapper::toDTO).toList();
                 orderDTO.getOrderProductDTOSet().addAll(orderProductDTOS);
 
                 Helper.startTask(orderApiService.addOrderAsync(orderDTO),
                         e -> {
                             saleRows.clear();
-                            lblFinalPrice.setText("saved");
+                            lblStatus.setText("saved");
                         }, null, this.stage);
             } catch (NumberFormatException e) {
                 Helper.createAlertError("Error", "Please enter a valid number.").show();
@@ -307,13 +340,14 @@ public class SalesOrderController {
         // prepare units list according to row
         colUnit.setOnEditStart(event -> {
             units.clear();
-            Task<Optional<ProductDTO>> byIdAsync = productApiService.findByIdAsync(event.getRowValue().getProductId());
+            Task<ProductDTO> byIdAsync = productApiService.findByIdAsync(event.getRowValue().getProductId());
             Helper.startTask(byIdAsync, e -> {
-                byIdAsync.getValue().ifPresent(dto -> {
-                    units.add(dto.getGreatestUnit());
-                    units.add(dto.getMediumUnit());
-                    units.add(dto.getSmallestUnit());
-                });
+                ProductDTO dto = byIdAsync.getValue();
+                ;
+                units.add(dto.getGreatestUnit());
+                units.add(dto.getMediumUnit());
+                units.add(dto.getSmallestUnit());
+
             }, null, this.stage);
 
         });
@@ -331,14 +365,16 @@ public class SalesOrderController {
         });
 
         colProductName.setCellValueFactory(
-                cellData -> new SimpleStringProperty(cellData.getValue().getProductDTO().getName()));
+                cellData -> new SimpleStringProperty(cellData.getValue().getProductSummaryDTO().getName()));
 
         colStock.setCellValueFactory(cellData -> cellData.getValue().stockProperty());
 
         colPrice.setCellValueFactory(cellData -> cellData.getValue().priceProperty());
 
         colExpire.setCellValueFactory(cellData -> cellData.getValue().expireDateProperty());
+
         colExpire.setCellFactory(ChoiceBoxTableCell.forTableColumn(expires));
+
         colExpire.setOnEditCommit(event -> {
             LocalDate expire = event.getNewValue();
             LocalDate oldExpire = event.getOldValue();
@@ -354,19 +390,20 @@ public class SalesOrderController {
                 return;
             }
             // update values of price and stock when expire change
-            Task<Optional<StockDTO>> stockByProductAndExpireAsync = stockApiService
+            Task<StockDTO> stockByProductAndExpireAsync = stockApiService
                     .findStockByProductAndExpireAsync(row.getProductId(), row.getExpireDate());
             Helper.startTask(stockByProductAndExpireAsync, e -> {
-                stockByProductAndExpireAsync.getValue().ifPresent(stockDTO -> {
-                    row.setPriceSU(stockDTO.getPriceSU());
-                    row.setStockSU(stockDTO.getQuantitySU());
-                    // make sure that quantity is not bigger than stock
-                    double quantity = row.getQuantity();
-                    double stockDouble = row.getStock();
-                    if (quantity > stockDouble) {
-                        row.setQuantity(stockDouble);
-                    }
-                });
+                StockDTO stockDTO = stockByProductAndExpireAsync.getValue();
+                ;
+                row.setPriceSU(stockDTO.getPriceSU());
+                row.setStockSU(stockDTO.getQuantitySU());
+                // make sure that quantity is not bigger than stock
+                double quantity = row.getQuantity();
+                double stockDouble = row.getStock();
+                if (quantity > stockDouble) {
+                    row.setQuantity(stockDouble);
+                }
+
             }, null, this.stage);
             tblProducts.refresh();
             tblProducts.requestFocus();
@@ -609,16 +646,17 @@ public class SalesOrderController {
             try {
                 double amount = Double.parseDouble(input);
                 BigDecimal amountToReceive = BigDecimal.valueOf(amount).setScale(2);
-                if(amountToReceive.compareTo(BigDecimal.ZERO) <= 0){
-                        Helper.createAlertError("Wrong Amount", "The amount to receive must be greater than ZERO").show();
-                }else {
+                if (amountToReceive.compareTo(BigDecimal.ZERO) <= 0) {
+                    Helper.createAlertError("Wrong Amount", "The amount to receive must be greater than ZERO").show();
+                } else {
                     CashDTO cashDTO = new CashDTO();
                     cashDTO.setAmount(amountToReceive);
                     cashDTO.setUserId(userId);
-                  Task<Void> receiveCashFromSafeAsync = cashApiService.receiveCashFromSafeAsync(cashDTO);
-                  Helper.startTask(receiveCashFromSafeAsync, e->{
-                    Helper.createAlertInfo("Successful Operation", "You have recieved the cash successfully").show();
-                  }, null, stage);
+                    Task<Void> receiveCashFromSafeAsync = cashApiService.receiveCashFromSafeAsync(cashDTO);
+                    Helper.startTask(receiveCashFromSafeAsync, e -> {
+                        Helper.createAlertInfo("Successful Operation", "You have recieved the cash successfully")
+                                .show();
+                    }, null, stage);
                 }
             } catch (NumberFormatException e) {
                 Helper.createAlertError("Invalid Number", "Only numbers are allowed").show();
@@ -629,15 +667,16 @@ public class SalesOrderController {
     @FXML
     private void handleSafeBalance(ActionEvent event) {
         Task<BigDecimal> totalAmountAsync = safeApiService.totalAmountAsync();
-        Helper.startTask(totalAmountAsync, e->{
+        Helper.startTask(totalAmountAsync, e -> {
             Helper.createAlertInfo("Safe Balance ", totalAmountAsync.getValue().toString()).show();
         }, null, stage);
     }
 
     @FXML
     private void handleMyBalance(ActionEvent event) {
-        Task<BigDecimal> currentAmountAsync = cashApiService.currentAmountAsync(TokenStore.getCurrentUserId());;
-        Helper.startTask(currentAmountAsync, e->{
+        Task<BigDecimal> currentAmountAsync = cashApiService.currentAmountAsync(TokenStore.getCurrentUserId());
+        ;
+        Helper.startTask(currentAmountAsync, e -> {
             BigDecimal value = currentAmountAsync.getValue();
             Helper.createAlertInfo("My Balance", "My Balance is " + value.toString()).show();
         }, null, stage);

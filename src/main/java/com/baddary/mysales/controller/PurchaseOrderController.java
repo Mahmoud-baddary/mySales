@@ -6,6 +6,7 @@ import com.baddary.mysales.dto.OrderDTO;
 import com.baddary.mysales.dto.OrderProductDTO;
 import com.baddary.mysales.dto.ProductDTO;
 import com.baddary.mysales.enums.OrderType;
+import com.baddary.mysales.helper.DatePickerTableCell;
 import com.baddary.mysales.helper.Helper;
 import com.baddary.mysales.mapper.OrderProductMapper;
 import com.baddary.mysales.row.OrderProductPurchaseRow;
@@ -13,7 +14,6 @@ import com.baddary.mysales.service.CustomerApiService;
 import com.baddary.mysales.service.OrderApiService;
 import com.baddary.mysales.service.ProductApiService;
 import com.baddary.mysales.util.TokenStore;
-import com.baddary.mysales.helper.DatePickerTableCell;
 
 import javafx.application.Platform;
 import javafx.beans.Observable;
@@ -85,7 +85,11 @@ public class PurchaseOrderController {
     @FXML
     private TextField tfEmail;
     @FXML
+    private Button btnAddProduct;
+    @FXML
     private TextField tfCustomerId;
+    @FXML
+    private TextField tfOriginalOrderId;
     private final ObservableList<String> units = FXCollections.observableArrayList();
     private final ObservableList<OrderProductPurchaseRow> purchaseRows = FXCollections.observableArrayList(
             op -> new Observable[] {
@@ -95,106 +99,62 @@ public class PurchaseOrderController {
     private final OrderApiService orderApiService = new OrderApiService();
     private final ProductApiService productApiService = new ProductApiService();
     private Stage stage;
+    //private Long originalOrderId;
+    private OrderType orderType = OrderType.BUY;
 
     @FXML
-
     public void initialize(Stage stage) {
         this.stage = stage;
         // initialize table
+        //this.originalOrderId = originalOrderId;
         prepareTableCells();
         setupFocusSeries();
+
         tblProducts.setItems(purchaseRows);
+        // if (originalOrderId != null) {
+        //     onUsingOriginalOrder();
+        // }
 
-        // formatter to prevent anything other than numbers
-        TextFormatter<String> phoneNumFormatter = new TextFormatter<>(change -> {
-            if (change.getControlNewText().matches("[\\d\\s\\-()]*")) {
-                return change;
-            }
-            return null; // Reject the change
-        });
-        tfPhoneNumber.setTextFormatter(phoneNumFormatter);
+        tfPhoneNumber.setTextFormatter(Helper.onlyNumbersFormatter());
         // fill fields when typing phone num
-        tfPhoneNumber.setOnAction(event -> {
-            Task<Optional<CustomerDTO>> byPhoneAsync = customerApiService
-                    .findByPhoneAsync(tfPhoneNumber.getText().strip());
-            Helper.startTask(byPhoneAsync, e -> {
-                Optional<CustomerDTO> optionalCustomer = byPhoneAsync.getValue();
-                optionalCustomer.ifPresentOrElse(dto -> {
-                    tfPhoneNumber.getStyleClass().remove("text-field-error");
-                    tfEmail.setText(dto.getEmail());
-                    tfCustomerId.setText(String.valueOf(dto.getId()));
-                    tfCustomerName.setText(dto.getName());
-                    taAddress.setText(dto.getAddress());
-                    tfDiscount.requestFocus();
-                }, () -> {
-                    tfPhoneNumber.getStyleClass().add("text-field-error");
-                    java.awt.Toolkit.getDefaultToolkit().beep();
-                });
-            }, null, this.stage);
+        onTypingPhoneNumber();
 
-        });
-
-        // make discount get only numbers
-        TextFormatter<Number> discountFormatter = new TextFormatter<>(
-                new NumberStringConverter(), 0.0, change -> {
-                    String text = change.getControlNewText();
-                    if (text.isEmpty())
-                        return change;
-                    try {
-                        Double.parseDouble(text);
-                        return change;
-                    } catch (Exception e) {
-                        return null;
-                    }
-                });
-        tfDiscount.setTextFormatter(discountFormatter);
+        tfDiscount.setTextFormatter(Helper.onlyDoubleFormatter());
 
         // make sure that no duplicate
-        purchaseRows.addListener((ListChangeListener<OrderProductPurchaseRow>) c -> {
-            while (c.next()) {
-
-                if (c.wasAdded()) {
-
-                    List<OrderProductPurchaseRow> duplicates = new ArrayList<>();
-
-                    for (OrderProductPurchaseRow op : c.getAddedSubList()) {
-                        if (isProductExist(op)) {
-                            duplicates.add(op);
-                        }
-                        op.expireDateProperty().addListener((obs, old, val) -> {
-                            if (isProductExist(op)) {
-                                Helper.createAlertError(
-                                        "Error",
-                                        "This product already exists with the same expire date").show();
-
-                                // 🔥 MODIFY OUTSIDE CHANGE ITERATION
-                                Platform.runLater(() -> op.setExpireDate(old));
-                            }
-                        });
-                    }
-
-                    if (!duplicates.isEmpty()) {
-                        Helper.createAlertError(
-                                "Error",
-                                "This product was already added with the same expire date").show();
-
-                        // 🔥 MODIFY OUTSIDE CHANGE ITERATION
-                        Platform.runLater(() -> purchaseRows.removeAll(duplicates));
-                    }
-
-                    // UI selection (safe)
-                    Platform.runLater(() -> {
-                        int row = purchaseRows.size() - 1;
-                        if (row >= 0) {
-                            tblProducts.scrollTo(row);
-                            tblProducts.getSelectionModel().select(row);
-                        }
-                    });
-                }
-            }
-        });
-
+        noDuplicateInProducts();
+        setUpBinding();
         // bind total and final price
+
+    }
+
+    // private void onUsingOriginalOrder() {
+    //     tfPhoneNumber.setEditable(false);
+    //     btnAddProduct.disableProperty().set(false);
+    //     tfDiscount.setEditable(false);
+    //     orderType = OrderType.BUY_RETURN;
+    //     Task<OrderDTO> byIdAsync = orderApiService.findByIdAsync(this.originalOrderId);
+    //     Helper.startTask(byIdAsync, e -> {
+    //         OrderDTO originalDTO = byIdAsync.getValue();
+    //         tfDiscount.setText(String.valueOf(originalDTO.getDiscount()));
+    //         tfOriginalOrderId.setText(String.valueOf(originalOrderId));
+    //         purchaseRows.addAll(
+    //                 originalDTO.getOrderProductDTOSet().stream().map(OrderProductMapper::toPurchaseRow).toList());
+
+    //         // add data of customer
+    //         tfCustomerId.setText(String.valueOf(originalDTO.getCustomerId()));
+    //         // get customer data
+    //         Task<CustomerDTO> byCustomerIdAsync = customerApiService.findByIdAsync(originalDTO.getCustomerId());
+    //         Helper.startTask(byCustomerIdAsync, ev -> {
+    //             CustomerDTO dto = byCustomerIdAsync.getValue();
+    //             tfCustomerName.setText(dto.getName());
+    //             tfPhoneNumber.setText(dto.getPhoneDTOSet().stream().map(p -> p.getPhoneNum()).findAny().orElse(""));
+    //         }, null, stage);
+    //     }, null, stage);
+
+    // }
+
+    private void setUpBinding() {
         DoubleBinding totalPriceBinding = Bindings.createDoubleBinding(
                 () -> purchaseRows.stream().mapToDouble(OrderProductPurchaseRow::getTotalPrice).sum(), purchaseRows);
 
@@ -207,7 +167,63 @@ public class PurchaseOrderController {
 
         lblFinalPrice.textProperty().bind(
                 finalPriceBinding.asString("%.2f"));
+    }
 
+    private void noDuplicateInProducts() {
+        purchaseRows.addListener(new ListChangeListener<OrderProductPurchaseRow>() {
+            @Override
+            public void onChanged(ListChangeListener.Change<? extends OrderProductPurchaseRow> c) {
+                while (c.next()) {
+
+                    if (c.wasAdded()) {
+
+                        List<OrderProductPurchaseRow> duplicates = new ArrayList<>();
+
+                        for (OrderProductPurchaseRow op : c.getAddedSubList()) {
+                            if (isProductExist(op)) {
+                                duplicates.add(op);
+                            }
+                        }
+
+                        if (!duplicates.isEmpty()) {
+                            Helper.createAlertError(
+                                    "Error",
+                                    "This product was already added with the same expire date").show();
+
+                            // 🔥 MODIFY OUTSIDE CHANGE ITERATION
+                            Platform.runLater(() -> purchaseRows.removeAll(duplicates));
+                        }
+
+                        // UI selection (safe)
+                        Platform.runLater(() -> {
+                            int row = purchaseRows.size() - 1;
+                            if (row >= 0) {
+                                tblProducts.scrollTo(row);
+                                tblProducts.getSelectionModel().select(row);
+                            }
+                        });
+                    }
+                }
+            }
+        });
+    }
+
+    private void onTypingPhoneNumber() {
+        tfPhoneNumber.setOnAction(event -> {
+            Task<CustomerDTO> byPhoneAsync = customerApiService
+                    .findByPhoneAsync(tfPhoneNumber.getText().strip());
+            Helper.startTask(byPhoneAsync, e -> {
+                CustomerDTO dto = byPhoneAsync.getValue();
+
+                tfPhoneNumber.getStyleClass().remove("text-field-error");
+                tfEmail.setText(dto.getEmail());
+                tfCustomerId.setText(String.valueOf(dto.getId()));
+                tfCustomerName.setText(dto.getName());
+                taAddress.setText(dto.getAddress());
+                tfDiscount.requestFocus();
+            }, null, this.stage);
+
+        });
     }
 
     public void handleAddProduct(ActionEvent event) throws IOException {
@@ -247,7 +263,7 @@ public class PurchaseOrderController {
         }
         OrderDTO orderDTO = new OrderDTO();
 
-        TextInputDialog dialog = Helper.createTextInputDialog(lblFinalPrice.getText(),
+        TextInputDialog dialog = Helper.createTextInputDialog("0.0",
                 "Payment", "Enter the amount paid by the store:",
                 "Paid Money:");
 
@@ -276,7 +292,7 @@ public class PurchaseOrderController {
                 orderDTO.setDate(date);
                 orderDTO.setTime(time);
                 orderDTO.setDiscount(discount);
-                orderDTO.setOrderType(OrderType.BUY);
+                orderDTO.setOrderType(this.orderType);
                 List<OrderProductDTO> orderProductDTOS = purchaseRows.stream().map(OrderProductMapper::toDTO).toList();
                 orderDTO.getOrderProductDTOSet().addAll(orderProductDTOS);
                 Helper.startTask(orderApiService.addOrderAsync(orderDTO), e -> {
@@ -299,35 +315,37 @@ public class PurchaseOrderController {
         // prepare units list
         colUnit.setOnEditStart(event -> {
             units.clear();
-            Task<Optional<ProductDTO>> byIdAsync = productApiService.findByIdAsync(event.getRowValue().getProductId());
+            Task<ProductDTO> byIdAsync = productApiService.findByIdAsync(event.getRowValue().getProductId());
             ;
             Helper.startTask(byIdAsync, e -> {
-                byIdAsync.getValue().ifPresent(productDTO -> {
-                    units.add(productDTO.getGreatestUnit());
-                    units.add(productDTO.getMediumUnit());
-                    units.add(productDTO.getSmallestUnit());
-                });
+                ProductDTO productDTO = byIdAsync.getValue();
+                ;
+                units.add(productDTO.getGreatestUnit());
+                units.add(productDTO.getMediumUnit());
+                units.add(productDTO.getSmallestUnit());
+
             }, null, this.stage);
 
         });
         colUnit.setOnEditCommit(event -> tblProducts.requestFocus());
 
         colProductName.setCellValueFactory(
-                cellData -> new SimpleStringProperty(cellData.getValue().getProductDTO().getName()));
+                cellData -> new SimpleStringProperty(cellData.getValue().getProductSummaryDTO().getName()));
 
         colPrice.setCellValueFactory(cellData -> cellData.getValue().priceProperty());
-        colPrice.setCellFactory(TextFieldTableCell.forTableColumn(new NumberStringConverter()));
+        colPrice.setCellFactory(TextFieldTableCell.forTableColumn(new
+        NumberStringConverter()));
         colPrice.setOnEditCommit(event -> {
-            double newValue = event.getNewValue().doubleValue();
-            double oldValue = event.getOldValue().doubleValue();
-            OrderProductPurchaseRow row = event.getRowValue();
-            if (newValue > 0) {
-                row.setPrice(newValue);
-            } else {
-                row.setPrice(oldValue);
-            }
-            tblProducts.refresh();
-            tblProducts.requestFocus();
+        double newValue = event.getNewValue().doubleValue();
+        double oldValue = event.getOldValue().doubleValue();
+        OrderProductPurchaseRow row = event.getRowValue();
+        if (newValue > 0) {
+        row.setPrice(newValue);
+        } else {
+        row.setPrice(oldValue);
+        }
+        tblProducts.refresh();
+        tblProducts.requestFocus();
         });
 
         colExpire.setEditable(true);
@@ -353,9 +371,10 @@ public class PurchaseOrderController {
 
         colDiscount.setCellValueFactory(cellData -> cellData.getValue().discountProperty());
         colDiscount.setEditable(true);
-        colDiscount.setCellFactory(TextFieldTableCell.forTableColumn(new NumberStringConverter()));
+        colDiscount.setCellFactory(TextFieldTableCell.forTableColumn(new
+        NumberStringConverter()));
         colDiscount.setOnEditCommit(event -> {
-            tblProducts.requestFocus();
+        tblProducts.requestFocus();
         });
 
         colBatch.setCellFactory(TextFieldTableCell.forTableColumn());

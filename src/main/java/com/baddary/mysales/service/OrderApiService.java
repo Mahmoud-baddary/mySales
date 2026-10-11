@@ -1,13 +1,11 @@
 package com.baddary.mysales.service;
 
-import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 
 import com.baddary.mysales.dto.OrderDTO;
 import com.baddary.mysales.dto.OrderSearchDTO;
@@ -125,10 +123,10 @@ public class OrderApiService {
         };
     }
 
-    public Task<Optional<OrderDTO>> findByIdAsync(long id) {
+    public Task<OrderDTO> findByIdAsync(long id) {
         return new Task<>() {
             @Override
-            protected Optional<OrderDTO> call() throws Exception {
+            protected OrderDTO call() throws Exception {
                 String url = BASE_URL + "/" + id;
                 HttpRequest request = addAuthHeader(HttpRequest.newBuilder())
                         .uri(URI.create(url))
@@ -136,9 +134,7 @@ public class OrderApiService {
                         .build();
                 HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
                 if (response.statusCode() == 200) {
-                    return Optional.of(objectMapper.readValue(response.body(), OrderDTO.class));
-                } else if (response.statusCode() == HttpURLConnection.HTTP_NOT_FOUND) {
-                    return Optional.empty();
+                    return objectMapper.readValue(response.body(), OrderDTO.class);
                 }
                 throw Helper.getRelatedException(response);
             }

@@ -11,6 +11,7 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextFormatter;
 import javafx.scene.control.TextInputDialog;
 import javafx.stage.Stage;
+import javafx.util.converter.NumberStringConverter;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
@@ -19,11 +20,10 @@ import java.util.Objects;
 import java.util.Optional;
 
 import com.baddary.mysales.MainApplication;
+import com.baddary.mysales.exception.ResourceNotFoundException;
 import com.baddary.mysales.exception.UnauthorizedException;
 import com.baddary.mysales.util.TokenStore;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+
 
 public class Helper {
 
@@ -97,8 +97,6 @@ public class Helper {
             task.setOnFailed(e -> {
                 createAlertError("Error", task.getException().getMessage()).show();
                 Throwable exception = task.getException();
-                System.out.println(exception.getClass());
-                System.out.println(exception instanceof UnauthorizedException);
                 if (exception instanceof UnauthorizedException) {
                     TokenStore.clear();
                     redirectToLogin(stage);
@@ -168,6 +166,8 @@ public class Helper {
     public static Exception getRelatedException(HttpResponse<String> response) {
 
         switch (response.statusCode()) {
+            case HttpURLConnection.HTTP_NOT_FOUND:
+                return new ResourceNotFoundException("Not Found");
             case HttpURLConnection.HTTP_UNAUTHORIZED:
                 return new UnauthorizedException("Token expired or invalid");
             case HttpURLConnection.HTTP_CONFLICT:
@@ -178,7 +178,7 @@ public class Helper {
         }
     }
 
-    public static TextFormatter<String> onlyNumbersFormatter(){
+    public static TextFormatter<String> onlyNumbersFormatter() {
         // formatter to prevent anything other than numbers
         TextFormatter<String> formatter = new TextFormatter<>(change -> {
             if (change.getControlNewText().matches("[\\d\\s\\-()]*")) {
@@ -187,6 +187,22 @@ public class Helper {
             return null; // Reject the change
         });
         return formatter;
+    }
+
+    public static TextFormatter<Number> onlyDoubleFormatter() {
+        TextFormatter<Number> doubleFormatter = new TextFormatter<>(
+                new NumberStringConverter(), 0.0, change -> {
+                    String text = change.getControlNewText();
+                    if (text.isEmpty())
+                        return change;
+                    try {
+                        Double.parseDouble(text);
+                        return change;
+                    } catch (Exception e) {
+                        return null;
+                    }
+                });
+        return doubleFormatter;
     }
 
 }

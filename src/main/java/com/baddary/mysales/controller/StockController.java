@@ -1,7 +1,6 @@
 package com.baddary.mysales.controller;
 
 import java.util.List;
-import java.util.Optional;
 
 import com.baddary.mysales.dto.ProductDTO;
 import com.baddary.mysales.dto.StockDTO;
@@ -42,6 +41,7 @@ public class StockController {
         private final StockApiService stockApiService = new StockApiService();
         private final ProductApiService productApiService = new ProductApiService();
         private Stage stage;
+
         @FXML
         public void initialize(Stage stage) {
                 this.stage = stage;
@@ -68,19 +68,18 @@ public class StockController {
                 Task<List<StockDTO>> stocksAsync = stockApiService.findStocksAsync(productName);
                 Helper.startTask(stocksAsync, e -> {
                         stocksAsync.getValue().forEach(stockDTO -> {
-                                Task<Optional<ProductDTO>> byIdAsync = productApiService
+                                Task<ProductDTO> byIdAsync = productApiService
                                                 .findByIdAsync(stockDTO.getProductId());
                                 Helper.startTask(byIdAsync, ev -> {
-                                        byIdAsync.getValue().ifPresent(productDTO -> {
-                                                StockRow row = new StockRow();
-                                                row.setExpire(stockDTO.getExpire().toString());
-                                                row.setPriceSU(stockDTO.getPriceSU());
-                                                row.setUnit(productDTO.getGreatestUnit());
-                                                row.setProductDTO(productDTO);
-                                                row.setProductName(productDTO.getName());
-                                                row.setQuantitySU(stockDTO.getQuantitySU());
-                                                stockRows.add(row);
-                                        });
+                                        ProductDTO productDTO = byIdAsync.getValue();
+                                        StockRow row = new StockRow();
+                                        row.setExpire(stockDTO.getExpire().toString());
+                                        row.setPriceSU(stockDTO.getPriceSU());
+                                        row.setUnit(productDTO.getGreatestUnit());
+                                        row.setProductDTO(productDTO);
+                                        row.setProductName(productDTO.getName());
+                                        row.setQuantitySU(stockDTO.getQuantitySU());
+                                        stockRows.add(row);
 
                                 }, null, this.stage);
                         });

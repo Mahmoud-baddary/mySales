@@ -1,7 +1,6 @@
 package com.baddary.mysales.controller;
 
 import java.util.List;
-import java.util.Optional;
 
 import com.baddary.mysales.dto.ProductDTO;
 import com.baddary.mysales.helper.Helper;
@@ -79,23 +78,20 @@ public class ProductController {
         tblProduct.getSelectionModel().selectedItemProperty().addListener(
                 (observable, oldValue, newValue) -> {
                     if (newValue != null) {
-                        Task<Optional<ProductDTO>> byNameAsync = productApiService
+                        Task<ProductDTO> byNameAsync = productApiService
                                 .findByNameAsync(newValue.getName());
                         Helper.startTask(byNameAsync, e -> {
-                            Optional<ProductDTO> optionalDTO = byNameAsync.getValue();
-                            optionalDTO.ifPresentOrElse(dto -> {
-                                tfProductId.setText(String.valueOf(dto.getId()));
-                                tfProductName.setText(dto.getName());
-                                tfGreatestUnit.setText(dto.getGreatestUnit());
-                                tfMediumUnit.setText(dto.getMediumUnit());
-                                tfSmallestUnit.setText(dto.getSmallestUnit());
-                                tfMUAmount.setText(String.valueOf(dto.getMediumUnitAmount()));
-                                tfSUAmount.setText(String.valueOf(dto.getSmallestUnitAmount()));
-                                barcodeRows.clear();
-                                barcodeRows.addAll(dto.getBarcodeDTOSet().stream().map(BarcodeMapper::toRow).toList());
-                            }, () -> {
-                                lblStatus.setText("No product is found with that name");
-                            });
+                            ProductDTO dto = byNameAsync.getValue();
+                            tfProductId.setText(String.valueOf(dto.getId()));
+                            tfProductName.setText(dto.getName());
+                            tfGreatestUnit.setText(dto.getGreatestUnit());
+                            tfMediumUnit.setText(dto.getMediumUnit());
+                            tfSmallestUnit.setText(dto.getSmallestUnit());
+                            tfMUAmount.setText(String.valueOf(dto.getMediumUnitAmount()));
+                            tfSUAmount.setText(String.valueOf(dto.getSmallestUnitAmount()));
+                            barcodeRows.clear();
+                            barcodeRows.addAll(dto.getBarcodeDTOSet().stream().map(BarcodeMapper::toRow).toList());
+
                         }, null, this.stage);
 
                     }

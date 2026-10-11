@@ -12,7 +12,6 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.List;
-import java.util.Optional;
 
 public class ProductApiService {
     private static final String BASE_URL = "http://localhost:8080/products";
@@ -75,10 +74,10 @@ public class ProductApiService {
     }
 
     // GET /products/by-name?name=xxx
-    public Task<Optional<ProductDTO>> findByNameAsync(String name) {
+    public Task<ProductDTO> findByNameAsync(String name) {
         return new Task<>() {
             @Override
-            protected Optional<ProductDTO> call() throws Exception {
+            protected ProductDTO call() throws Exception {
                 String url = BASE_URL + "/by-name?name=" + java.net.URLEncoder.encode(name, "UTF-8");
                 HttpRequest request = addAuthHeader(HttpRequest.newBuilder()
                         .uri(URI.create(url))
@@ -86,9 +85,7 @@ public class ProductApiService {
                         .build();
                 HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
                 if (response.statusCode() == 200) {
-                    return Optional.of(objectMapper.readValue(response.body(), ProductDTO.class));
-                } else if (response.statusCode() == 404) {
-                    return Optional.empty();
+                    return objectMapper.readValue(response.body(), ProductDTO.class);
                 }
                 throw Helper.getRelatedException(response);
             }
@@ -96,20 +93,18 @@ public class ProductApiService {
     }
 
     // GET /products/{id}
-    public Task<Optional<ProductDTO>> findByIdAsync(long id) {
+    public Task<ProductDTO> findByIdAsync(long id) {
         return new Task<>() {
             @Override
-            protected Optional<ProductDTO> call() throws Exception {
+            protected ProductDTO call() throws Exception {
                 HttpRequest request = addAuthHeader(HttpRequest.newBuilder()
                         .uri(URI.create(BASE_URL + "/" + id))
                         .GET())
                         .build();
                 HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
                 if (response.statusCode() == 200) {
-                    return Optional.of(objectMapper.readValue(response.body(), ProductDTO.class));
-                } else if (response.statusCode() == 404) {
-                    return Optional.empty();
-                }
+                    return objectMapper.readValue(response.body(), ProductDTO.class);
+                } 
                 throw Helper.getRelatedException(response);
             }
         };

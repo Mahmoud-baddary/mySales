@@ -5,15 +5,18 @@ import java.time.LocalDate;
 public class OrderProductDTO {
     private Long productId;
     private String batch, unit, note;
-    private double quantity, price, discount;
+    private double quantity, price, discount, quantitySU;
     private LocalDate expireDate;
     private Long orderId;
-    private String productName;
-    
+    private ProductSummaryDTO productSummaryDTO;
+    private double stockSU;
+    private double priceSU;
 
     public Long getOrderId(){
         return orderId;
     }
+
+    
 
     public void setOrderId(Long orderId){
         this.orderId = orderId;
@@ -83,11 +86,47 @@ public class OrderProductDTO {
         this.expireDate = expireDate;
     }
 
-    public String getProductName() {
-        return productName;
+    public ProductSummaryDTO getProductSummaryDTO() {
+        return productSummaryDTO;
     }
 
-    public void setProductName(String productName) {
-        this.productName = productName;
+    public void setProductSummaryDTO(ProductSummaryDTO productSummaryDTO) {
+        this.productSummaryDTO = productSummaryDTO;
+    }
+
+
+
+    public double getQuantitySU() {
+        return quantitySU;
+    }
+
+
+
+    public void setQuantitySU(double quantitySU) {
+        this.quantitySU = quantitySU;
+    }
+
+
+
+    public double getStockSU() {
+        return stockSU;
+    }
+
+
+
+    public void setStockSU(double stockSU) {
+        this.stockSU = stockSU;
+    }
+
+
+
+    public double getPriceSU() {
+        return priceSU;
+    }
+
+
+
+    public void setPriceSU(double priceSU) {
+        this.priceSU = priceSU;
     }
 }

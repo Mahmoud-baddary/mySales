@@ -5,7 +5,7 @@ import javafx.beans.property.*;
 
 import java.time.LocalDate;
 
-import com.baddary.mysales.dto.ProductDTO;
+import com.baddary.mysales.dto.ProductSummaryDTO;
 
 public class OrderProductSaleRow {
     private final SimpleLongProperty productId = new SimpleLongProperty(0);
@@ -23,21 +23,29 @@ public class OrderProductSaleRow {
     private final ObjectProperty<LocalDate> expireDate = new SimpleObjectProperty<>();
     private final SimpleDoubleProperty stockSU = new SimpleDoubleProperty();
     private final SimpleDoubleProperty priceSU = new SimpleDoubleProperty();
-    private final ObjectProperty<ProductDTO> productDTO = new SimpleObjectProperty<>();
-    public OrderProductSaleRow(){
+    private final ObjectProperty<ProductSummaryDTO> productSummaryDTO = new SimpleObjectProperty<>();
+    private final SimpleDoubleProperty quantitySu = new SimpleDoubleProperty(0);
+
+    public OrderProductSaleRow() {
         totalPrice.bind(price.multiply(quantity).multiply(discount.divide(100).multiply(-1).add(1)));
         stock.bind(Bindings.createDoubleBinding(
-                ()-> calculateStock(stockSU.get(), productDTO.get()), stockSU, unit, productDTO
-        ));
+                () -> calculateStock(stockSU.get(), productSummaryDTO.get()), stockSU, unit, productSummaryDTO));
         price.bind(
                 Bindings.createDoubleBinding(
-                        () -> calculatePrice(priceSU.get(), productDTO.get()),
-                        priceSU, unit, productDTO
-                )
-        );
+                        () -> calculatePrice(priceSU.get(), productSummaryDTO.get()),
+                        priceSU, unit, productSummaryDTO));
+        quantitySu.bind(Bindings.createDoubleBinding(
+                () -> calculateQuantitySU(getProductSummaryDTO(), getUnit(), getQuantity()), unit, productSummaryDTO, quantity));
+
     }
 
+    public SimpleDoubleProperty quantitySUProperty() {
+        return this.quantitySu;
+    }
 
+    public double getQuantitySU() {
+        return this.quantitySu.get();
+    }
 
     public double getTotalPrice() {
         return totalPrice.get();
@@ -47,8 +55,7 @@ public class OrderProductSaleRow {
         return totalPrice;
     }
 
-
-    public void setPriceSU(double priceSU){
+    public void setPriceSU(double priceSU) {
         this.priceSU.set(priceSU);
     }
 
@@ -132,8 +139,7 @@ public class OrderProductSaleRow {
         return price;
     }
 
-
-    private double calculatePrice(double priceSU, ProductDTO productDTO) {
+    private double calculatePrice(double priceSU, ProductSummaryDTO productDTO) {
         double price = 0;
         if (productDTO != null) {
             if (this.unit.get().equalsIgnoreCase(productDTO.getGreatestUnit())) {
@@ -167,8 +173,6 @@ public class OrderProductSaleRow {
         return stock;
     }
 
-
-
     public LocalDate getExpireDate() {
         return expireDate.get();
     }
@@ -197,21 +201,37 @@ public class OrderProductSaleRow {
         return priceSU;
     }
 
-    public ProductDTO getProductDTO() {
-        return productDTO.get();
+    public ProductSummaryDTO getProductSummaryDTO() {
+        return productSummaryDTO.get();
     }
 
-    public ObjectProperty<ProductDTO> productDTOProperty() {
-        return productDTO;
+    public ObjectProperty<ProductSummaryDTO> productDTOProperty() {
+        return productSummaryDTO;
     }
 
-    public void setProductDTO(ProductDTO productDTO) {
-        this.productDTO.set(productDTO);
+    public void setProductSummaryDTO(ProductSummaryDTO productSummaryDTO) {
+        this.productSummaryDTO.set(productSummaryDTO);
     }
 
-    private double calculateStock(double stockSU, ProductDTO productDTO) {
+    private double calculateQuantitySU(ProductSummaryDTO dto, String unit, double quantity) {
+        double quantitySU = 0;
+        if (dto == null) {
+            return quantitySU;
+        }
+        if (unit.equalsIgnoreCase(dto.getGreatestUnit())) {
+            quantitySU = quantity * dto.getSmallestUnitAmount();
+        } else if (unit.equalsIgnoreCase(dto.getMediumUnit())) {
+            quantitySU = quantity * dto.getSmallestUnitAmount() / dto.getMediumUnitAmount();
+        } else {
+            quantitySU = quantity;
+        }
+        return quantitySU;
+    }
+
+    private double calculateStock(double stockSU, ProductSummaryDTO productDTO) {
         double stock = 0;
-        if (productDTO == null) return stock;
+        if (productDTO == null)
+            return stock;
         if (this.unit.get().equalsIgnoreCase(productDTO.getGreatestUnit())) {
             stock = stockSU / productDTO.getSmallestUnitAmount();
         } else if (this.unit.get().equalsIgnoreCase(productDTO.getMediumUnit())) {
@@ -221,7 +241,6 @@ public class OrderProductSaleRow {
         }
         return stock;
     }
-
 
     @Override
     public String toString() {
