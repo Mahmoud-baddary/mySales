@@ -28,6 +28,7 @@ public class OrderProductSearchRow {
     private final SimpleDoubleProperty priceSU = new SimpleDoubleProperty();
     private final ObjectProperty<ProductSummaryDTO> productSummaryDTO = new SimpleObjectProperty<>();
     private final SimpleDoubleProperty quantitySu = new SimpleDoubleProperty(0);
+    private double originalQuantitySU;
 
     public OrderProductSearchRow() {
         totalPrice.bind(price.multiply(quantity).multiply(discount.divide(100).multiply(-1).add(1)));
@@ -40,6 +41,10 @@ public class OrderProductSearchRow {
         quantitySu.bind(Bindings.createDoubleBinding(
                 () -> calculateQuantitySU(getProductSummaryDTO(), getUnit(), getQuantity()), unit, productSummaryDTO, quantity));
 
+    }
+
+    public double getOriginalQuantitySU(){
+        return this.originalQuantitySU;
     }
 
     public SimpleDoubleProperty quantitySUProperty() {
@@ -263,5 +268,11 @@ public class OrderProductSearchRow {
 
     public void setStockSU(double stockSU) {
         this.stockSU.set(stockSU);
+    }
+
+
+
+    public void setOriginalQuantitySU(double originalQuantitySU) {
+        this.originalQuantitySU = originalQuantitySU;
     }
 }

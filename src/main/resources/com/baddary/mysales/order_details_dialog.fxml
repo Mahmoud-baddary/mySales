@@ -83,7 +83,8 @@
     <bottom>
         <HBox alignment="CENTER_RIGHT" spacing="10.0" style="-fx-padding: 10 0 0 0;">
             <Button text="Close" onAction="#handleClose" style="-fx-background-color: #f44336; -fx-text-fill: white;" />
-            <Button text="Return" onAction="#handleReturn" style="-fx-background-color: #f44336; -fx-text-fill: white;"  />
+            <Button text="Return" onAction="#handleReturn" style="-fx-background-color: #4CAF50; -fx-text-fill: white;"  />
+            
         </HBox>
     </bottom>
 </BorderPane>

@@ -62,6 +62,20 @@ public class OrderProductMapper {
         return dto;
     }
 
+    public static OrderProductDTO toDTO(OrderProductSearchRow row){
+        OrderProductDTO dto = new OrderProductDTO();
+        dto.setQuantity(row.getQuantity());
+        dto.setUnit(row.getUnit());
+        dto.setNote(row.getNote());
+        dto.setProductId(row.getProductId());
+        dto.setBatch(row.getBatch());
+        dto.setDiscount(row.getDiscount());
+        dto.setPrice(row.getPrice());
+        dto.setExpireDate(row.getExpireDate());
+        dto.setQuantitySU(row.getQuantitySU());
+        return dto;
+    }
+
     public static OrderProductSearchRow toRow(OrderProductDTO dto){
         OrderProductSearchRow row = new OrderProductSearchRow();
         row.setBatch(dto.getBatch());
@@ -74,6 +88,7 @@ public class OrderProductMapper {
         row.setOrderId(dto.getOrderId());
         row.setProductSummaryDTO(dto.getProductSummaryDTO());
         row.setPriceSU(dto.getPriceSU());
+        row.setOriginalQuantitySU(row.getQuantitySU());
         //row.setStockSU(dto.getStockSU());
         
         return row;

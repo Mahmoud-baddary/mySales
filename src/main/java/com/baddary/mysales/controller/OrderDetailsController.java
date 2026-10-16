@@ -5,26 +5,38 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
+import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.control.cell.ChoiceBoxTableCell;
+import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.stage.Stage;
+import javafx.util.converter.NumberStringConverter;
 
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.List;
+import java.util.Optional;
 
 import com.baddary.mysales.MainApplication;
 import com.baddary.mysales.dto.OrderDTO;
 import com.baddary.mysales.enums.OrderType;
 import com.baddary.mysales.helper.Helper;
 import com.baddary.mysales.mapper.OrderProductMapper;
+import com.baddary.mysales.row.OrderProductSaleRow;
 import com.baddary.mysales.row.OrderProductSearchRow;
 import com.baddary.mysales.service.OrderApiService;
+import com.baddary.mysales.service.ProductApiService;
+import com.baddary.mysales.util.TokenStore;
 
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
+import com.baddary.mysales.dto.ProductDTO;
+import com.baddary.mysales.dto.ProductSummaryDTO;
 
 public class OrderDetailsController {
     @FXML
@@ -89,37 +101,32 @@ public class OrderDetailsController {
 
     private final OrderApiService orderApiService = new OrderApiService();
     private final ObservableList<OrderProductSearchRow> orderItemsList = FXCollections.observableArrayList();
+    private final ObservableList<String> units = FXCollections.observableArrayList();
+    private final ProductApiService productApiService = new ProductApiService();
 
-    private Long orderId;
+    private Long originalOrderId, customerId;
     private Stage stage;
-    private OrderType orderType;
+    private OrderType originalOrderType;
+    private double originalOrderDiscount;
 
     public void intialize(Stage stage, long orderId) {
-        colProductId.setCellValueFactory(cellData -> cellData.getValue().productIdProperty());
-        colUnit.setCellValueFactory(cellData -> cellData.getValue().unitProperty());
-        colQuantity.setCellValueFactory(cellData -> cellData.getValue().quantityProperty());
-        colPrice.setCellValueFactory(cellData -> cellData.getValue().priceProperty());
-        colDiscount.setCellValueFactory(cellData -> cellData.getValue().discountProperty());
-        colTotal.setCellValueFactory(cellData -> cellData.getValue().totalPriceProperty()); // need totalProperty in
-        colProductName.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getProductSummaryDTO().getName())); // OrderProductRow
-        colExpireDate.setCellValueFactory(cellData -> cellData.getValue().expireDateProperty());
-        colBatch.setCellValueFactory(cellData -> cellData.getValue().batchProperty());
-        colNotes.setCellValueFactory(cellData -> cellData.getValue().noteProperty()); // noteProperty in OrderProductRow
-
+        setupTableColumns();
+        tblOrderItems.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         tblOrderItems.setItems(orderItemsList);
-        this.orderId = orderId;
+        this.originalOrderId = orderId;
         this.stage = stage;
-        Task<OrderDTO> byIdAsync = orderApiService.findByIdAsync(this.orderId);
+        Task<OrderDTO> byIdAsync = orderApiService.findByIdAsync(this.originalOrderId);
         Helper.startTask(byIdAsync, e -> {
             OrderDTO dto = byIdAsync.getValue();
-
+            customerId = dto.getCustomerId();
             lblCustomer.setText(dto.getCustomerName());
             lblDate.setText(dto.getDate().toString());
             lblDiscount.setText(String.valueOf(dto.getDiscount()));
+            originalOrderDiscount = dto.getDiscount();
             lblOrderId.setText(String.valueOf(dto.getId()));
             lblPaidMoney.setText(String.valueOf(dto.getPaidMoney()));
             lblOrderType.setText(dto.getOrderType().name());
-            this.orderType = dto.getOrderType();
+            this.originalOrderType = dto.getOrderType();
             lblTotalPrice.setText(String.valueOf(dto.calculateTotalPrice()));
             lblUser.setText(dto.getUserName());
             lblTime.setText(dto.getTime().toString());
@@ -138,23 +145,117 @@ public class OrderDetailsController {
 
     @FXML
     private void handleReturn(ActionEvent event) throws IOException {
-        if (this.orderType == OrderType.SALE) {
-            FXMLLoader loader = new FXMLLoader(MainApplication.class.getResource("sales_order_view.fxml"));
-            Parent root = loader.load();
-            SalesOrderController controller = loader.getController();
-            controller.initialize(this.stage);
-            this.stage.setTitle("Return Buy Order");
-            this.stage.setScene(new Scene(root));
-            this.stage.sizeToScene();
-        }else{
-            FXMLLoader loader = new FXMLLoader(MainApplication.class.getResource("purchase_order_view.fxml"));
-            Parent root = loader.load();
-            PurchaseOrderController controller = loader.getController();
-            controller.initialize(this.stage);
-            this.stage.setTitle("Return Buy Order");
-            this.stage.setScene(new Scene(root));
-            this.stage.sizeToScene();
+        ObservableList<OrderProductSearchRow> selectedItems = tblOrderItems.getSelectionModel().getSelectedItems();
+        if (selectedItems.size() == 0) {
+            Helper.createAlertError("No item selected", "Please selecte items you want to return").show();
+            return;
         }
+        OrderDTO returnOrderDTO = createReturnOrderDTO(selectedItems);
+        double totalPrice = returnOrderDTO.calculateTotalPrice();
+        Optional<String> result = Helper.createTextInputDialog(
+                String.valueOf(totalPrice), "Payment", "Enter the amount paid", "Paid money")
+                .showAndWait();
+        result.ifPresent(input->{
+            try{
+                double paidMoney = Double.parseDouble(input.trim());
+                if (paidMoney < 0) {
+                    Helper.createAlertError("Error", "Amount cannot be negative.").show();
+                    return;
+                }
+                if (paidMoney > totalPrice) {
+                    Helper.createAlertError("Error", "paidMoney can't be greater than order price").show();
+                    return;
+                }
+                returnOrderDTO.setPaidMoney(paidMoney);
+                Task<OrderDTO> addOrderAsync = orderApiService.addOrderAsync(returnOrderDTO);
+                Helper.startTask(addOrderAsync, e->{
+                    Helper.createAlertInfo("Successful operation", "order has been saved successfully").show();
+                    stage.close();
+                }, null, stage);
+            }catch (NumberFormatException e) {
+                Helper.createAlertError("Error", "Please enter a valid number.").show();
+            }
+        });
+    }
+
+    private OrderDTO createReturnOrderDTO(List<OrderProductSearchRow> items) {
+        OrderDTO orderDTO = new OrderDTO();
+        orderDTO.setCustomerId(customerId);
+        orderDTO.setOriginalOrderId(originalOrderId);
+        orderDTO.setDate(LocalDate.now());
+        orderDTO.setTime(LocalTime.now());
+        orderDTO.setUserId(TokenStore.getCurrentUserId());
+        orderDTO.setDiscount(originalOrderDiscount);
+        orderDTO.setOrderType(originalOrderType == OrderType.BUY ? OrderType.BUY_RETURN : OrderType.SALE_RETURN);
+        items.forEach(item -> {
+            orderDTO.getOrderProductDTOSet().add(OrderProductMapper.toDTO(item));
+        });
+        return orderDTO;
+    }
+
+    private void setupTableColumns() {
+        tblOrderItems.setEditable(true);
+        colUnit.setEditable(true);
+        colProductId.setCellValueFactory(cellData -> cellData.getValue().productIdProperty());
+        colUnit.setCellValueFactory(cellData -> cellData.getValue().unitProperty());
+        colQuantity.setCellValueFactory(cellData -> cellData.getValue().quantityProperty());
+        colPrice.setCellValueFactory(cellData -> cellData.getValue().priceProperty());
+        colDiscount.setCellValueFactory(cellData -> cellData.getValue().discountProperty());
+        colTotal.setCellValueFactory(cellData -> cellData.getValue().totalPriceProperty()); // need totalProperty in
+        colProductName.setCellValueFactory(
+                cellData -> new SimpleStringProperty(cellData.getValue().getProductSummaryDTO().getName())); // OrderProductRow
+        colExpireDate.setCellValueFactory(cellData -> cellData.getValue().expireDateProperty());
+        colBatch.setCellValueFactory(cellData -> cellData.getValue().batchProperty());
+        colNotes.setCellValueFactory(cellData -> cellData.getValue().noteProperty()); // noteProperty in OrderProductRow
+
+        setupUnitCol();
+        setupQuantityCol();
+    }
+
+    private void setupQuantityCol() {
+        colQuantity.setEditable(true);
+        colQuantity.setCellFactory(TextFieldTableCell.forTableColumn(new NumberStringConverter()));
+        // quantity must be positive and <= stock
+        colQuantity.setOnEditCommit(event -> {
+            OrderProductSearchRow row = event.getRowValue();
+            double newValue = event.getNewValue().doubleValue();
+            double oldValue = event.getOldValue().doubleValue();
+            if (newValue <= 0) {
+                return;
+            }
+            row.setQuantity(newValue);
+            if (row.getQuantitySU() > row.getOriginalQuantitySU()) {
+                row.setQuantity(oldValue);
+            }
+            tblOrderItems.refresh();
+            tblOrderItems.requestFocus();
+        });
+    }
+
+    private void setupUnitCol() {
+        colUnit.setCellFactory(ChoiceBoxTableCell.forTableColumn(units));
+        // prepare units list according to row
+        colUnit.setOnEditStart(event -> {
+            units.clear();
+            ProductSummaryDTO dto = event.getRowValue().getProductSummaryDTO();
+
+            units.add(dto.getGreatestUnit());
+            units.add(dto.getMediumUnit());
+            units.add(dto.getSmallestUnit());
+
+        });
+        colUnit.setOnEditCommit(event -> {
+            OrderProductSearchRow row = event.getRowValue();
+            String oldUnit = event.getOldValue();
+            row.setUnit(event.getNewValue());
+            double newQuantitySU = row.getQuantitySU();
+            // make sure that quantity is not bigger than old value
+            if (newQuantitySU > row.getOriginalQuantitySU()) {
+                row.setUnit(oldUnit);
+            }
+            tblOrderItems.refresh();
+            tblOrderItems.requestFocus();
+        });
     }
 
 }
