@@ -22,11 +22,21 @@ public class OrderProductPurchaseRow {
     private final ObjectProperty<LocalDate> expireDate = new SimpleObjectProperty<>();
     private final ObjectProperty<ProductSummaryDTO> productSummaryDTO = new SimpleObjectProperty<>();
     private final SimpleDoubleProperty quantitySu = new SimpleDoubleProperty(0);
+    private final SimpleDoubleProperty priceSU = new SimpleDoubleProperty();
 
     public OrderProductPurchaseRow() {
         totalPrice.bind(price.multiply(quantity).multiply(discount.divide(100).multiply(-1).add(1)));
         quantitySu.bind(Bindings.createDoubleBinding(
                 () -> calculateQuantitySU(getProductSummaryDTO(), getUnit(), getQuantity()), unit, productSummaryDTO, quantity));
+            priceSU.bind(Bindings.createDoubleBinding(
+                () -> calculatePriceSU(getProductSummaryDTO(), getUnit(), getPrice()), unit, productSummaryDTO, price));
+            }
+
+    public double getPriceSU() {
+        return priceSU.get();
+    }
+    public SimpleDoubleProperty priceSUProperty() {
+        return priceSU;
     }
 
     public SimpleDoubleProperty quantitySUProperty() {
@@ -178,5 +188,20 @@ public class OrderProductPurchaseRow {
 
     public void setProductSummaryDTO(ProductSummaryDTO productSummaryDTO) {
         this.productSummaryDTO.set(productSummaryDTO);
+    }
+
+    private double calculatePriceSU(ProductSummaryDTO dto, String unit, double price) {
+        double priceSU = 0;
+        if (dto == null) {
+            return priceSU;
+        }
+        if (unit.equalsIgnoreCase(dto.getGreatestUnit())) {
+            priceSU = price / dto.getSmallestUnitAmount();
+        } else if (unit.equalsIgnoreCase(dto.getMediumUnit())) {
+            priceSU = price / ((double) dto.getSmallestUnitAmount() / dto.getMediumUnitAmount());
+        } else {
+            priceSU = price;
+        }
+        return priceSU;
     }
 }

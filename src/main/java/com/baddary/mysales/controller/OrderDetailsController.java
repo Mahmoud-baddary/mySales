@@ -1,9 +1,7 @@
 package com.baddary.mysales.controller;
 
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TableColumn;
@@ -19,15 +17,12 @@ import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 
-import com.baddary.mysales.MainApplication;
 import com.baddary.mysales.dto.OrderDTO;
 import com.baddary.mysales.enums.OrderType;
 import com.baddary.mysales.helper.Helper;
 import com.baddary.mysales.mapper.OrderProductMapper;
-import com.baddary.mysales.row.OrderProductSaleRow;
 import com.baddary.mysales.row.OrderProductSearchRow;
 import com.baddary.mysales.service.OrderApiService;
-import com.baddary.mysales.service.ProductApiService;
 import com.baddary.mysales.util.TokenStore;
 
 import javafx.beans.property.SimpleStringProperty;
@@ -35,7 +30,6 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
-import com.baddary.mysales.dto.ProductDTO;
 import com.baddary.mysales.dto.ProductSummaryDTO;
 
 public class OrderDetailsController {
@@ -99,10 +93,12 @@ public class OrderDetailsController {
     @FXML
     private TableColumn<OrderProductSearchRow, String> colNotes;
 
+    @FXML 
+    private Button btnReturn;
+
     private final OrderApiService orderApiService = new OrderApiService();
     private final ObservableList<OrderProductSearchRow> orderItemsList = FXCollections.observableArrayList();
     private final ObservableList<String> units = FXCollections.observableArrayList();
-    private final ProductApiService productApiService = new ProductApiService();
 
     private Long originalOrderId, customerId;
     private Stage stage;
@@ -115,6 +111,11 @@ public class OrderDetailsController {
         tblOrderItems.setItems(orderItemsList);
         this.originalOrderId = orderId;
         this.stage = stage;
+        loadOrder();
+        
+    }
+
+    private void loadOrder(){
         Task<OrderDTO> byIdAsync = orderApiService.findByIdAsync(this.originalOrderId);
         Helper.startTask(byIdAsync, e -> {
             OrderDTO dto = byIdAsync.getValue();
@@ -135,6 +136,7 @@ public class OrderDetailsController {
                 orderItemsList.add(OrderProductMapper.toRow(op));
 
             });
+            btnReturn.setDisable(originalOrderType != OrderType.BUY && originalOrderType != OrderType.SALE);
         }, null, this.stage);
     }
 

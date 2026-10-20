@@ -46,6 +46,7 @@ public class OrderProductMapper {
         dto.setPrice(row.getPrice());
         dto.setExpireDate(row.getExpireDate());
         dto.setQuantitySU(row.getQuantitySU());
+        dto.setPriceSU(row.getPriceSU());
         return dto;
     }
     public static OrderProductDTO toDTO(OrderProductSaleRow row){
@@ -59,6 +60,7 @@ public class OrderProductMapper {
         dto.setPrice(row.getPrice());
         dto.setExpireDate(row.getExpireDate());
         dto.setQuantitySU(row.getQuantitySU());
+        dto.setPriceSU(row.getPriceSU());
         return dto;
     }
 
@@ -73,6 +75,7 @@ public class OrderProductMapper {
         dto.setPrice(row.getPrice());
         dto.setExpireDate(row.getExpireDate());
         dto.setQuantitySU(row.getQuantitySU());
+        dto.setPriceSU(row.getPriceSU());
         return dto;
     }
 
@@ -89,7 +92,6 @@ public class OrderProductMapper {
         row.setProductSummaryDTO(dto.getProductSummaryDTO());
         row.setPriceSU(dto.getPriceSU());
         row.setOriginalQuantitySU(row.getQuantitySU());
-        //row.setStockSU(dto.getStockSU());
         
         return row;
     }
