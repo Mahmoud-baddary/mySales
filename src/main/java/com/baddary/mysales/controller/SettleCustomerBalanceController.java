@@ -11,7 +11,6 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
-import com.baddary.mysales.dto.CashDTO;
 import com.baddary.mysales.dto.CustomerDTO;
 import com.baddary.mysales.dto.OrderDTO;
 import com.baddary.mysales.enums.CustomerStatus;
@@ -23,7 +22,6 @@ import com.baddary.mysales.row.CustomerBalanceRow;
 import com.baddary.mysales.row.OrderSearchRow;
 import com.baddary.mysales.service.CustomerApiService;
 import com.baddary.mysales.service.OrderApiService;
-import com.baddary.mysales.util.TokenStore;
 
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.DoubleBinding;
@@ -210,18 +208,16 @@ public class SettleCustomerBalanceController {
         Helper.createAlertConfirm("Confirm payment", "Settle Customer Balance",
                 "Are you sure to settle this customer balance", () -> {
                     // make sure that amount is not bigger than the balance
-                    double amount = Double.parseDouble(tfAmount.getText());
-                    double balance = Double.parseDouble(tfBalance.getText());
-                    if (amount > balance) {
+                    BigDecimal amount = new BigDecimal(tfAmount.getText());
+                    BigDecimal balance = new BigDecimal(tfBalance.getText());
+                    if (amount.compareTo(balance) > 0) {
                         Helper.createAlertError("Wrong Amount", "Amount can't be greater than customer balance").show();
                         return;
                     }
                     // update customer balance after subtract
-                    CashDTO cashDTO = new CashDTO();
-                    cashDTO.setAmount(BigDecimal.valueOf(amount).setScale(2));
-                    cashDTO.setUserId(TokenStore.getCurrentUserId());
+                    
                     Task<CustomerDTO> settleCustomerBalanceAsync = customerApiService
-                            .settleCustomerBalanceAsync(this.customer.getId(), cashDTO);
+                            .settleCustomerBalanceAsync(this.customer.getId(), amount);
                     Helper.startTask(settleCustomerBalanceAsync, e -> {
                         Helper.createAlertInfo("Successful Operation", "Customer balance has been settled successfully")
                                 .show();

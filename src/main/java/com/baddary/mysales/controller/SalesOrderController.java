@@ -1,7 +1,6 @@
 package com.baddary.mysales.controller;
 
 import com.baddary.mysales.MainApplication;
-import com.baddary.mysales.dto.CashDTO;
 import com.baddary.mysales.dto.CustomerDTO;
 import com.baddary.mysales.dto.OrderDTO;
 import com.baddary.mysales.dto.OrderProductDTO;
@@ -44,6 +43,7 @@ import javafx.stage.Stage;
 import javafx.util.converter.NumberStringConverter;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
@@ -608,8 +608,8 @@ public class SalesOrderController {
             Optional<String> result = dialog.showAndWait();
             result.ifPresent(input -> {
                 try {
-                    double amountDouble = Double.parseDouble(input);
-                    BigDecimal amountToDeposit = BigDecimal.valueOf(amountDouble).setScale(2);
+                   
+                    BigDecimal amountToDeposit = new BigDecimal(input).setScale(2, RoundingMode.HALF_UP);
                     if (amountToDeposit.compareTo(currentAmount) > 0) {
                         Helper.createAlertError("Wrong Amount",
                                 "The amount to deposit must not be greater than the current cash of the user").show();
@@ -617,10 +617,8 @@ public class SalesOrderController {
                         Helper.createAlertError("Wrong Amount", "The amount to deposit must be greater than ZERO")
                                 .show();
                     } else {
-                        CashDTO cashDTO = new CashDTO();
-                        cashDTO.setUserId(currentUserId);
-                        cashDTO.setAmount(amountToDeposit);
-                        Task<Void> depositCashToSafeAsync = cashApiService.depositCashToSafeAsync(cashDTO);
+                        
+                        Task<Void> depositCashToSafeAsync = cashApiService.depositCashToSafeAsync(amountToDeposit);
                         ;
                         Helper.startTask(depositCashToSafeAsync, ev -> {
                             Helper.createAlertInfo("DONE", "Money has been deposited into the safe successfully")
@@ -638,21 +636,17 @@ public class SalesOrderController {
 
     @FXML
     private void handleReceiveCashFromSafe(ActionEvent event) {
-        Long userId = TokenStore.getCurrentUserId();
         TextInputDialog dialog = Helper.createTextInputDialog("0", "Money Transfer", "Recieve Money From Safe",
                 "How much do you want to get from safe");
         Optional<String> result = dialog.showAndWait();
         result.ifPresent(input -> {
             try {
-                double amount = Double.parseDouble(input);
-                BigDecimal amountToReceive = BigDecimal.valueOf(amount).setScale(2);
+                BigDecimal amountToReceive = new BigDecimal(input).setScale(2, RoundingMode.HALF_UP);
                 if (amountToReceive.compareTo(BigDecimal.ZERO) <= 0) {
                     Helper.createAlertError("Wrong Amount", "The amount to receive must be greater than ZERO").show();
                 } else {
-                    CashDTO cashDTO = new CashDTO();
-                    cashDTO.setAmount(amountToReceive);
-                    cashDTO.setUserId(userId);
-                    Task<Void> receiveCashFromSafeAsync = cashApiService.receiveCashFromSafeAsync(cashDTO);
+                    
+                    Task<Void> receiveCashFromSafeAsync = cashApiService.receiveCashFromSafeAsync(amountToReceive);
                     Helper.startTask(receiveCashFromSafeAsync, e -> {
                         Helper.createAlertInfo("Successful Operation", "You have recieved the cash successfully")
                                 .show();
@@ -674,10 +668,10 @@ public class SalesOrderController {
 
     @FXML
     private void handleMyBalance(ActionEvent event) {
-        Task<BigDecimal> currentAmountAsync = cashApiService.currentAmountAsync(TokenStore.getCurrentUserId());
+        Task<BigDecimal> myCurrentAmountAsync = cashApiService.myCurrentAmountAsync();
         ;
-        Helper.startTask(currentAmountAsync, e -> {
-            BigDecimal value = currentAmountAsync.getValue();
+        Helper.startTask(myCurrentAmountAsync, e -> {
+            BigDecimal value = myCurrentAmountAsync.getValue();
             Helper.createAlertInfo("My Balance", "My Balance is " + value.toString()).show();
         }, null, stage);
     }

@@ -164,14 +164,14 @@ public class Helper {
     }
 
     public static Exception getRelatedException(HttpResponse<String> response) {
-
+        String exceptionMessage = response.statusCode() + " " + response.body();
         switch (response.statusCode()) {
             case HttpURLConnection.HTTP_NOT_FOUND:
-                return new ResourceNotFoundException("Not Found");
+                return new ResourceNotFoundException(exceptionMessage + "\n" + "Not Found");
             case HttpURLConnection.HTTP_UNAUTHORIZED:
-                return new UnauthorizedException("Token expired or invalid");
+                return new UnauthorizedException(exceptionMessage + "\n" + "Token expired or invalid");
             case HttpURLConnection.HTTP_CONFLICT:
-                return new RuntimeException("There is another operation that conflict this operation please try again");
+                return new RuntimeException(exceptionMessage + "\n" + "There is another operation that conflict this operation please try again");
             default:
                 return new RuntimeException("HTTP " + response.statusCode() + response.body());
 

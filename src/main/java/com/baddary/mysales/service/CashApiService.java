@@ -7,7 +7,6 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
-import com.baddary.mysales.dto.CashDTO;
 import com.baddary.mysales.exception.UnauthorizedException;
 import com.baddary.mysales.util.TokenStore;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -34,16 +33,20 @@ public class CashApiService {
         return builder;
     }
 
-    public Task<Void> depositCashToSafeAsync(CashDTO cashDTO) {
+    // ✅ Changed parameter from CashDTO to BigDecimal
+    public Task<Void> depositCashToSafeAsync(BigDecimal amount) {
         return new Task<Void>() {
             @Override
             protected Void call() throws Exception {
-                String json = objectMapper.writeValueAsString(cashDTO);
+                // ✅ Send just the number as a string (e.g., "150.75")
+                String json = amount.toPlainString();
+                
                 HttpRequest request = addAuthHeader(HttpRequest.newBuilder())
                         .uri(URI.create(BASE_URL + "/deposit"))
                         .header("Content-Type", "application/json")
                         .POST(HttpRequest.BodyPublishers.ofString(json))
                         .build();
+                        
                 HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
                 if (response.statusCode() == HttpURLConnection.HTTP_OK) {
                     return null;
@@ -52,21 +55,24 @@ public class CashApiService {
                     throw new UnauthorizedException("Token expired or invalid");
                 }
                 throw new RuntimeException("Deposit failed: " + response.statusCode() + response.body());
-
             }
         };
     }
 
-    public Task<Void> receiveCashFromSafeAsync(CashDTO cashDTO) {
+    // ✅ Changed parameter from CashDTO to BigDecimal
+    public Task<Void> receiveCashFromSafeAsync(BigDecimal amount) {
         return new Task<Void>() {
             @Override
             protected Void call() throws Exception {
-                String json = objectMapper.writeValueAsString(cashDTO);
+                // ✅ Send just the number as a string
+                String json = amount.toPlainString();
+                
                 HttpRequest request = addAuthHeader(HttpRequest.newBuilder())
                         .uri(URI.create(BASE_URL + "/receive"))
                         .header("Content-Type", "application/json")
                         .POST(HttpRequest.BodyPublishers.ofString(json))
                         .build();
+                        
                 HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
                 if (response.statusCode() == HttpURLConnection.HTTP_OK) {
                     return null;
@@ -75,7 +81,6 @@ public class CashApiService {
                     throw new UnauthorizedException("Token expired or invalid");
                 }
                 throw new RuntimeException("Receiving failed: " + response.statusCode() + response.body());
-
             }
         };
     }
@@ -96,7 +101,26 @@ public class CashApiService {
                     throw new UnauthorizedException("Token expired or invalid");
                 }
                 throw new RuntimeException("Data request failed: " + response.statusCode() + response.body());
+            }
+        };
+    }
 
+    public Task<BigDecimal> myCurrentAmountAsync() {
+        return new Task<>() {
+            @Override
+            protected BigDecimal call() throws Exception {
+                HttpRequest request = addAuthHeader(HttpRequest.newBuilder())
+                        .uri(URI.create(BASE_URL + "/my"))
+                        .GET()
+                        .build();
+                HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+                if (response.statusCode() == HttpURLConnection.HTTP_OK) {
+                    return objectMapper.readValue(response.body(), BigDecimal.class);
+                }
+                if (response.statusCode() == HttpURLConnection.HTTP_UNAUTHORIZED) {
+                    throw new UnauthorizedException("Token expired or invalid");
+                }
+                throw new RuntimeException("Data request failed: " + response.statusCode() + response.body());
             }
         };
     }

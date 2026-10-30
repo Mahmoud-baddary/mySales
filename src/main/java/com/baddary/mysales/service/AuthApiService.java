@@ -7,6 +7,7 @@ import java.net.http.HttpResponse;
 
 import com.baddary.mysales.dto.LoginRequestDTO;
 import com.baddary.mysales.dto.LoginResponseDTO;
+import com.baddary.mysales.helper.Helper;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import javafx.concurrent.Task;
@@ -36,9 +37,8 @@ public class AuthApiService {
                 HttpResponse<String> response = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
                 if (response.statusCode() == 200) {
                     return objectMapper.readValue(response.body(), LoginResponseDTO.class);
-                } else {
-                    throw new RuntimeException("Login failed: HTTP " + response.statusCode() + response.body());
-                }
+                } 
+                throw Helper.getRelatedException(response);
             }
         };
     }

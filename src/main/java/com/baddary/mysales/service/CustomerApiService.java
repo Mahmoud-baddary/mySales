@@ -1,5 +1,6 @@
 package com.baddary.mysales.service;
 
+import java.math.BigDecimal;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -8,7 +9,6 @@ import java.net.http.HttpResponse;
 import java.util.List;
 import java.util.Optional;
 
-import com.baddary.mysales.dto.CashDTO;
 import com.baddary.mysales.dto.CustomerDTO;
 import com.baddary.mysales.helper.Helper;
 import com.baddary.mysales.util.TokenStore;
@@ -80,11 +80,11 @@ public class CustomerApiService {
         };
     }
 
-    public Task<CustomerDTO> settleCustomerBalanceAsync(long customerId, CashDTO cashDTO) {
+    public Task<CustomerDTO> settleCustomerBalanceAsync(long customerId, BigDecimal amount) {
         return new Task<>() {
             @Override
             protected CustomerDTO call() throws Exception {
-                String jsonBody = objectMapper.writeValueAsString(cashDTO);
+                String jsonBody = amount.toPlainString();
 
                 // Build the request: PATCH /customers/{id}/balance
                 HttpRequest request = addAuthHeader(HttpRequest.newBuilder()
